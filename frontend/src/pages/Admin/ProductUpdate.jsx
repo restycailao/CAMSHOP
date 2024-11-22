@@ -9,37 +9,26 @@ import {
 } from "../../redux/api/productApiSlice";
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import { toast } from "react-toastify";
+import { Grid, TextField, Button, Select, MenuItem, InputLabel, FormControl, Typography } from "@mui/material";
 
 const AdminProductUpdate = () => {
   const params = useParams();
-
   const { data: productData } = useGetProductByIdQuery(params._id);
-
-  console.log(productData);
 
   const [image, setImage] = useState(productData?.image || "");
   const [name, setName] = useState(productData?.name || "");
-  const [description, setDescription] = useState(
-    productData?.description || ""
-  );
+  const [description, setDescription] = useState(productData?.description || "");
   const [price, setPrice] = useState(productData?.price || "");
   const [category, setCategory] = useState(productData?.category || "");
   const [quantity, setQuantity] = useState(productData?.quantity || "");
   const [brand, setBrand] = useState(productData?.brand || "");
-  const [stock, setStock] = useState(productData?.countInStock);
+  const [stock, setStock] = useState(productData?.countInStock || "");
 
-  // hook
   const navigate = useNavigate();
-
-  // Fetch categories using RTK Query
   const { data: categories = [] } = useFetchCategoriesQuery();
 
   const [uploadProductImage] = useUploadProductImageMutation();
-
-  // Define the update product mutation
   const [updateProduct] = useUpdateProductMutation();
-
-  // Define the delete product mutation
   const [deleteProduct] = useDeleteProductMutation();
 
   useEffect(() => {
@@ -59,13 +48,13 @@ const AdminProductUpdate = () => {
     formData.append("image", e.target.files[0]);
     try {
       const res = await uploadProductImage(formData).unwrap();
-      toast.success("Item added successfully", {
+      toast.success("Image uploaded successfully", {
         position: toast.POSITION.TOP_RIGHT,
         autoClose: 2000,
       });
       setImage(res.image);
     } catch (err) {
-      toast.success("Item added successfully", {
+      toast.error("Image upload failed", {
         position: toast.POSITION.TOP_RIGHT,
         autoClose: 2000,
       });
@@ -85,7 +74,6 @@ const AdminProductUpdate = () => {
       formData.append("brand", brand);
       formData.append("countInStock", stock);
 
-      // Update product using the RTK Query mutation
       const data = await updateProduct({ productId: params._id, formData });
 
       if (data?.error) {
@@ -132,137 +120,172 @@ const AdminProductUpdate = () => {
   };
 
   return (
-    <>
-      <div className="container  xl:mx-[9rem] sm:mx-[0]">
+    <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh', backgroundColor: '#121212' }}>
+      <Grid item xs={12} md={8} lg={6}>
         <div className="flex flex-col md:flex-row">
           <AdminMenu />
-          <div className="md:w-3/4 p-3">
-            <div className="h-12">Update / Delete Product</div>
+          <div className="md:w-full p-3" style={{ backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px' }}>
+            <Typography variant="h5" gutterBottom style={{ color: '#e0f7fa' }}>
+              Update / Delete Product
+            </Typography>
 
             {image && (
               <div className="text-center">
                 <img
                   src={image}
                   alt="product"
-                  className="block mx-auto w-full h-[40%]"
+                  style={{ width: '200px', height: '200px', objectFit: 'cover', margin: '0 auto', borderRadius: '8px' }}
                 />
               </div>
             )}
 
-            <div className="mb-3">
-              <label className="text-white  py-2 px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
-                {image ? image.name : "Upload image"}
-                <input
-                  type="file"
-                  name="image"
-                  accept="image/*"
-                  onChange={uploadFileHandler}
-                  className="text-white"
-                />
-              </label>
-            </div>
-
-            <div className="p-3">
-              <div className="flex flex-wrap">
-                <div className="one">
-                  <label htmlFor="name">Name</label> <br />
-                  <input
-                    type="text"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={2} justifyContent="center">
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Product Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
                   />
-                </div>
-
-                <div className="two">
-                  <label htmlFor="name block">Price</label> <br />
-                  <input
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Price"
                     type="number"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white "
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
                   />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap">
-                <div>
-                  <label htmlFor="name block">Quantity</label> <br />
-                  <input
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Description"
+                    multiline
+                    rows={4}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Quantity"
                     type="number"
-                    min="1"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
                   />
-                </div>
-                <div>
-                  <label htmlFor="name block">Brand</label> <br />
-                  <input
-                    type="text"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white "
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Brand"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
                   />
-                </div>
-              </div>
-
-              <label htmlFor="" className="my-5">
-                Description
-              </label>
-              <textarea
-                type="text"
-                className="p-2 mb-3 bg-[#101011]  border rounded-lg w-[95%] text-white"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-
-              <div className="flex justify-between">
-                <div>
-                  <label htmlFor="name block">Count In Stock</label> <br />
-                  <input
-                    type="text"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white "
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Stock"
+                    type="number"
                     value={stock}
                     onChange={(e) => setStock(e.target.value)}
+                    required
+                    variant="filled"
+                    style={{ backgroundColor: '#263238', color: '#e0f7fa' }}
+                    InputLabelProps={{ style: { color: '#e0f7fa' } }}
+                    InputProps={{ style: { color: '#e0f7fa' } }}
                   />
-                </div>
-
-                <div>
-                  <label htmlFor="">Category</label> <br />
-                  <select
-                    placeholder="Choose Category"
-                    className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white mr-[5rem]"
-                    onChange={(e) => setCategory(e.target.value)}
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth required variant="filled" style={{ backgroundColor: '#263238' }}>
+                    <InputLabel style={{ color: '#e0f7fa' }}>Category</InputLabel>
+                    <Select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      style={{ color: '#e0f7fa' }}
+                    >
+                      <MenuItem value="">
+                        <em>None</em>
+                      </MenuItem>
+                      {categories.map((cat) => (
+                        <MenuItem key={cat._id} value={cat._id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    fullWidth
+                    style={{ backgroundColor: '#00796b', color: '#fff' }}
                   >
-                    {categories?.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="">
-                <button
-                  onClick={handleSubmit}
-                  className="py-4 px-10 mt-5 rounded-lg text-lg font-bold  bg-green-600 mr-6"
-                >
-                  Update
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="py-4 px-10 mt-5 rounded-lg text-lg font-bold  bg-pink-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+                    Upload Image
+                    <input
+                      type="file"
+                      hidden
+                      onChange={uploadFileHandler}
+                    />
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    style={{ backgroundColor: '#00796b', color: '#fff' }}
+                  >
+                    Update Product
+                  </Button>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    onClick={handleDelete}
+                    variant="contained"
+                    color="secondary"
+                    fullWidth
+                    style={{ backgroundColor: '#d32f2f', color: '#fff' }}
+                  >
+                    Delete Product
+                  </Button>
+                </Grid>
+              </Grid>
+            </form>
           </div>
         </div>
-      </div>
-    </>
+      </Grid>
+    </Grid>
   );
 };
 

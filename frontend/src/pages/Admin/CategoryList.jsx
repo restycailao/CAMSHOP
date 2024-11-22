@@ -14,8 +14,14 @@ import AdminMenu from "./AdminMenu";
 const CategoryList = () => {
   const { data: categories } = useFetchCategoriesQuery();
   const [name, setName] = useState("");
+  const [cameraType, setCameraType] = useState("");
+  const [sensorSize, setSensorSize] = useState("");
+  const [primaryUseCase, setPrimaryUseCase] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [updatingName, setUpdatingName] = useState("");
+  const [updatingCameraType, setUpdatingCameraType] = useState("");
+  const [updatingSensorSize, setUpdatingSensorSize] = useState("");
+  const [updatingPrimaryUseCase, setUpdatingPrimaryUseCase] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
   const [createCategory] = useCreateCategoryMutation();
@@ -25,17 +31,25 @@ const CategoryList = () => {
   const handleCreateCategory = async (e) => {
     e.preventDefault();
 
-    if (!name) {
-      toast.error("Category name is required");
+    if (!name || !cameraType || !sensorSize || !primaryUseCase) {
+      toast.error("All fields are required");
       return;
     }
 
     try {
-      const result = await createCategory({ name }).unwrap();
+      const result = await createCategory({
+        name,
+        cameraType,
+        sensorSize,
+        primaryUseCase,
+      }).unwrap();
       if (result.error) {
         toast.error(result.error);
       } else {
         setName("");
+        setCameraType("");
+        setSensorSize("");
+        setPrimaryUseCase("");
         toast.success(`${result.name} is created.`);
       }
     } catch (error) {
@@ -47,8 +61,8 @@ const CategoryList = () => {
   const handleUpdateCategory = async (e) => {
     e.preventDefault();
 
-    if (!updatingName) {
-      toast.error("Category name is required");
+    if (!updatingName || !updatingCameraType || !updatingSensorSize || !updatingPrimaryUseCase) {
+      toast.error("All fields are required");
       return;
     }
 
@@ -57,6 +71,9 @@ const CategoryList = () => {
         categoryId: selectedCategory._id,
         updatedCategory: {
           name: updatingName,
+          cameraType: updatingCameraType,
+          sensorSize: updatingSensorSize,
+          primaryUseCase: updatingPrimaryUseCase,
         },
       }).unwrap();
 
@@ -66,6 +83,9 @@ const CategoryList = () => {
         toast.success(`${result.name} is updated`);
         setSelectedCategory(null);
         setUpdatingName("");
+        setUpdatingCameraType("");
+        setUpdatingSensorSize("");
+        setUpdatingPrimaryUseCase("");
         setModalVisible(false);
       }
     } catch (error) {
@@ -98,6 +118,12 @@ const CategoryList = () => {
         <CategoryForm
           value={name}
           setValue={setName}
+          cameraType={cameraType}
+          setCameraType={setCameraType}
+          sensorSize={sensorSize}
+          setSensorSize={setSensorSize}
+          primaryUseCase={primaryUseCase}
+          setPrimaryUseCase={setPrimaryUseCase}
           handleSubmit={handleCreateCategory}
         />
         <br />
@@ -113,6 +139,9 @@ const CategoryList = () => {
                     setModalVisible(true);
                     setSelectedCategory(category);
                     setUpdatingName(category.name);
+                    setUpdatingCameraType(category.cameraType);
+                    setUpdatingSensorSize(category.sensorSize);
+                    setUpdatingPrimaryUseCase(category.primaryUseCase);
                   }
                 }}
               >
@@ -126,6 +155,12 @@ const CategoryList = () => {
           <CategoryForm
             value={updatingName}
             setValue={(value) => setUpdatingName(value)}
+            cameraType={updatingCameraType}
+            setCameraType={(value) => setUpdatingCameraType(value)}
+            sensorSize={updatingSensorSize}
+            setSensorSize={(value) => setUpdatingSensorSize(value)}
+            primaryUseCase={updatingPrimaryUseCase}
+            setPrimaryUseCase={(value) => setUpdatingPrimaryUseCase(value)}
             handleSubmit={handleUpdateCategory}
             buttonText="Update"
             handleDelete={handleDeleteCategory}
