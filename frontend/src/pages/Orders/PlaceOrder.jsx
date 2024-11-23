@@ -42,103 +42,130 @@ const PlaceOrder = () => {
   };
 
   return (
-    <>
-      <ProgressSteps step1 step2 step3 />
+    <div className="container mx-auto pt-[90px] px-4">
+      <div className="max-w-6xl mx-auto">
+        <ProgressSteps step1 step2 step3 />
 
-      <div className="container mx-auto mt-8">
         {cart.cartItems.length === 0 ? (
           <Message>Your cart is empty</Message>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <td className="px-1 py-2 text-left align-top">Image</td>
-                  <td className="px-1 py-2 text-left">Product</td>
-                  <td className="px-1 py-2 text-left">Quantity</td>
-                  <td className="px-1 py-2 text-left">Price</td>
-                  <td className="px-1 py-2 text-left">Total</td>
-                </tr>
-              </thead>
-
-              <tbody>
-                {cart.cartItems.map((item, index) => (
-                  <tr key={index}>
-                    <td className="p-2">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover"
-                      />
-                    </td>
-
-                    <td className="p-2">
-                      <Link to={`/product/${item.product}`}>{item.name}</Link>
-                    </td>
-                    <td className="p-2">{item.qty}</td>
-                    <td className="p-2">{item.price.toFixed(2)}</td>
-                    <td className="p-2">
-                      $ {(item.qty * item.price).toFixed(2)}
-                    </td>
+          <div className="mt-8">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="border-b">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Image</th>
+                    <th className="px-4 py-3 text-left">Product</th>
+                    <th className="px-4 py-3 text-left">Quantity</th>
+                    <th className="px-4 py-3 text-left">Price</th>
+                    <th className="px-4 py-3 text-left">Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody className="divide-y">
+                  {cart.cartItems.map((item, index) => (
+                    <tr key={index}>
+                      <td className="p-4">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-16 h-16 object-cover"
+                        />
+                      </td>
+                      <td className="p-4">
+                        <Link to={`/product/${item.product}`} className="hover:text-pink-500">
+                          {item.name}
+                        </Link>
+                      </td>
+                      <td className="p-4">{item.qty}</td>
+                      <td className="p-4">${item.price.toFixed(2)}</td>
+                      <td className="p-4">
+                        ${(item.qty * item.price).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-8 grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
+                  <div className="space-y-2">
+                    <p>
+                      <strong className="text-pink-500">Address:</strong>{" "}
+                      {cart.shippingAddress.address}
+                    </p>
+                    <p>
+                      <strong className="text-pink-500">City:</strong>{" "}
+                      {cart.shippingAddress.city}
+                    </p>
+                    <p>
+                      <strong className="text-pink-500">Postal Code:</strong>{" "}
+                      {cart.shippingAddress.postalCode}
+                    </p>
+                    <p>
+                      <strong className="text-pink-500">Country:</strong>{" "}
+                      {cart.shippingAddress.country}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
+                  <p>
+                    <strong className="text-pink-500">Method:</strong>{" "}
+                    {cart.paymentMethod}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <div className="bg-[#181818] p-6 rounded">
+                  <h2 className="text-2xl font-semibold mb-6">Order Summary</h2>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span>Items</span>
+                      <span>${cart.itemsPrice}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Shipping</span>
+                      <span>${cart.shippingPrice}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax</span>
+                      <span>${cart.taxPrice}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold border-t pt-4">
+                      <span>Total</span>
+                      <span>${cart.totalPrice}</span>
+                    </div>
+
+                    {error && (
+                      <div className="mt-4">
+                        <Message variant="danger">{error.data.message}</Message>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className="w-full bg-pink-500 text-white py-3 px-4 rounded hover:bg-pink-600 transition-colors mt-6"
+                      disabled={cart.cartItems === 0}
+                      onClick={placeOrderHandler}
+                    >
+                      Place Order
+                    </button>
+
+                    {isLoading && <Loader />}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
-
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-5">Order Summary</h2>
-          <div className="flex justify-between flex-wrap p-8 bg-[#181818]">
-            <ul className="text-lg">
-              <li>
-                <span className="font-semibold mb-4">Items:</span> $
-                {cart.itemsPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Shipping:</span> $
-                {cart.shippingPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Tax:</span> $
-                {cart.taxPrice}
-              </li>
-              <li>
-                <span className="font-semibold mb-4">Total:</span> $
-                {cart.totalPrice}
-              </li>
-            </ul>
-
-            {error && <Message variant="danger">{error.data.message}</Message>}
-
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Shipping</h2>
-              <p>
-                <strong>Address:</strong> {cart.shippingAddress.address},{" "}
-                {cart.shippingAddress.city} {cart.shippingAddress.postalCode},{" "}
-                {cart.shippingAddress.country}
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Payment Method</h2>
-              <strong>Method:</strong> {cart.paymentMethod}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="bg-pink-500 text-white py-2 px-4 rounded-full text-lg w-full mt-4"
-            disabled={cart.cartItems === 0}
-            onClick={placeOrderHandler}
-          >
-            Place Order
-          </button>
-
-          {isLoading && <Loader />}
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 

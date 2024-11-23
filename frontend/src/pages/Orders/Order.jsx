@@ -92,136 +92,157 @@ const Order = () => {
   ) : error ? (
     <Messsage variant="danger">{error.data.message}</Messsage>
   ) : (
-    <div className="container flex flex-col ml-[10rem] md:flex-row">
-      <div className="md:w-2/3 pr-4">
-        <div className="border gray-300 mt-5 pb-4 mb-5">
-          {order.orderItems.length === 0 ? (
-            <Messsage>Order is empty</Messsage>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-[80%]">
-                <thead className="border-b-2">
-                  <tr>
-                    <th className="p-2">Image</th>
-                    <th className="p-2">Product</th>
-                    <th className="p-2 text-center">Quantity</th>
-                    <th className="p-2">Unit Price</th>
-                    <th className="p-2">Total</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {order.orderItems.map((item, index) => (
-                    <tr key={index}>
-                      <td className="p-2">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover"
-                        />
-                      </td>
-
-                      <td className="p-2">
-                        <Link to={`/product/${item.product}`}>{item.name}</Link>
-                      </td>
-
-                      <td className="p-2 text-center">{item.qty}</td>
-                      <td className="p-2 text-center">{item.price}</td>
-                      <td className="p-2 text-center">
-                        $ {(item.qty * item.price).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="md:w-1/3">
-        <div className="mt-5 border-gray-300 pb-4 mb-4">
-          <h2 className="text-xl font-bold mb-2">Shipping</h2>
-          <p className="mb-4 mt-4">
-            <strong className="text-pink-500">Order:</strong> {order._id}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Name:</strong>{" "}
-            {order.user.username}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Email:</strong> {order.user.email}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Address:</strong>{" "}
-            {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
-            {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-          </p>
-
-          <p className="mb-4">
-            <strong className="text-pink-500">Method:</strong>{" "}
-            {order.paymentMethod}
-          </p>
-
-          {order.isPaid ? (
-            <Messsage variant="success">Paid on {order.paidAt}</Messsage>
-          ) : (
-            <Messsage variant="danger">Not paid</Messsage>
-          )}
-        </div>
-
-        <h2 className="text-xl font-bold mb-2 mt-[3rem]">Order Summary</h2>
-        <div className="flex justify-between mb-2">
-          <span>Items</span>
-          <span>$ {order.itemsPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Shipping</span>
-          <span>$ {order.shippingPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Tax</span>
-          <span>$ {order.taxPrice}</span>
-        </div>
-        <div className="flex justify-between mb-2">
-          <span>Total</span>
-          <span>$ {order.totalPrice}</span>
-        </div>
-
-        {!order.isPaid && (
-          <div>
-            {loadingPay && <Loader />}{" "}
-            {isPending ? (
-              <Loader />
-            ) : (
-              <div>
-                <div>
-                  <PayPalButtons
-                    createOrder={createOrder}
-                    onApprove={onApprove}
-                    onError={onError}
-                  ></PayPalButtons>
+    <div className="container mx-auto pt-[90px] px-4 bg-[#0E0E0E] text-white">
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="md:w-2/3">
+          <div className="border-b border-gray-700 pb-4 mb-5">
+            <h2 className="text-2xl font-semibold mb-4">Order {order._id}</h2>
+            <div className="mb-4">
+              <h3 className="text-xl mb-2">Shipping</h3>
+              <div className="ml-4">
+                <p>
+                  <strong className="text-pink-500">Name: </strong> {order.user.name}
+                </p>
+                <p>
+                  <strong className="text-pink-500">Email: </strong> {order.user.email}
+                </p>
+                <p>
+                  <strong className="text-pink-500">Address: </strong>
+                  {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
+                  {order.shippingAddress.postalCode},{" "}
+                  {order.shippingAddress.country}
+                </p>
+                <div className="mt-2">
+                  {order.isDelivered ? (
+                    <Messsage variant="success">
+                      Delivered on {order.deliveredAt}
+                    </Messsage>
+                  ) : (
+                    <Messsage variant="danger">Not Delivered</Messsage>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="text-xl mb-2">Payment Method</h3>
+              <div className="ml-4">
+                <p>
+                  <strong className="text-pink-500">Method: </strong>
+                  {order.paymentMethod}
+                </p>
+                <div className="mt-2">
+                  {order.isPaid ? (
+                    <Messsage variant="success">
+                      Paid on {order.paidAt}
+                    </Messsage>
+                  ) : (
+                    <Messsage variant="danger">Not Paid</Messsage>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xl mb-2">Order Items</h3>
+              {order.orderItems.length === 0 ? (
+                <Messsage>Order is empty</Messsage>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="border-b border-gray-700">
+                      <tr>
+                        <th className="px-4 py-3 text-left">Item</th>
+                        <th className="px-4 py-3 text-left">Quantity</th>
+                        <th className="px-4 py-3 text-left">Price</th>
+                        <th className="px-4 py-3 text-left">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                      {order.orderItems.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-16 h-16 object-cover"
+                              />
+                              <Link
+                                to={`/product/${item.product}`}
+                                className="ml-4 hover:text-pink-500"
+                              >
+                                {item.name}
+                              </Link>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">{item.qty}</td>
+                          <td className="px-4 py-3">${item.price}</td>
+                          <td className="px-4 py-3">
+                            ${(item.qty * item.price).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="md:w-1/3">
+          <div className="bg-[#1A1A1A] p-6 rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span>Items</span>
+                <span>${order.itemsPrice}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Shipping</span>
+                <span>${order.shippingPrice}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>${order.taxPrice}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Total</span>
+                <span>${order.totalPrice}</span>
+              </div>
+            </div>
+
+            {!order.isPaid && (
+              <div className="mt-4">
+                {loadingPay && <Loader />}
+                {isPending ? (
+                  <Loader />
+                ) : (
+                  <div>
+                    <PayPalButtons
+                      createOrder={createOrder}
+                      onApprove={onApprove}
+                      onError={onError}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {loadingDeliver && <Loader />}
+            {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
+              <div className="mt-4">
+                <button
+                  className="bg-pink-500 text-white w-full py-2 hover:bg-pink-600"
+                  onClick={deliverHandler}
+                >
+                  Mark As Delivered
+                </button>
               </div>
             )}
           </div>
-        )}
-
-        {loadingDeliver && <Loader />}
-        {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
-          <div>
-            <button
-              type="button"
-              className="bg-pink-500 text-white w-full py-2"
-              onClick={deliverHandler}
-            >
-              Mark As Delivered
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

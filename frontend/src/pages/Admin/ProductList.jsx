@@ -7,6 +7,31 @@ import {
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import { toast } from "react-toastify";
 import AdminMenu from "./AdminMenu";
+import {
+  Grid,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Typography,
+  Box,
+} from "@mui/material";
+
+const colorPalette = {
+  primary: '#000000',
+  secondary: '#1a1a1a',
+  accent: '#333333',
+  text: {
+    primary: '#ffffff',
+    secondary: '#e0e0e0'
+  },
+  background: {
+    main: '#0d0d0d',
+    paper: '#1a1a1a'
+  }
+};
 
 const ProductList = () => {
   const [image, setImage] = useState("");
@@ -44,7 +69,7 @@ const ProductList = () => {
         toast.error("Product create failed. Try Again.");
       } else {
         toast.success(`${data.name} is created`);
-        navigate("/");
+        navigate("/admin/allproductslist");
       }
     } catch (error) {
       console.error(error);
@@ -55,137 +80,266 @@ const ProductList = () => {
   const uploadFileHandler = async (e) => {
     const formData = new FormData();
     formData.append("image", e.target.files[0]);
-
     try {
       const res = await uploadProductImage(formData).unwrap();
-      toast.success(res.message);
+      toast.success("Image uploaded successfully");
       setImage(res.image);
       setImageUrl(res.image);
     } catch (error) {
-      toast.error(error?.data?.message || error.error);
+      toast.error("Image upload failed. Try Again");
     }
   };
 
   return (
-    <div className="container xl:mx-[9rem] sm:mx-[0]">
-      <div className="flex flex-col md:flex-row">
-        <AdminMenu />
-        <div className="md:w-3/4 p-3">
-          <div className="h-12">Create Product</div>
+    <Box sx={{ backgroundColor: colorPalette.background.main, minHeight: '100vh' }}>
+      <Grid container sx={{ minHeight: '100vh' }}>
+        <Grid item xs={12} md={2} sx={{ 
+          backgroundColor: colorPalette.background.paper,
+          borderRight: `1px solid ${colorPalette.accent}`,
+        }}>
+          <AdminMenu />
+        </Grid>
 
-          {imageUrl && (
-            <div className="text-center">
-              <img
-                src={imageUrl}
-                alt="product"
-                className="block mx-auto max-h-[200px]"
-              />
-            </div>
-          )}
+        <Grid item xs={12} md={10}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              height: '100%',
+              p: 4,
+              pt: '90px', 
+            }}
+          >
+            <Typography
+              variant="h4"
+              sx={{
+                color: colorPalette.text.primary,
+                mb: 3,
+                textAlign: "center",
+                fontWeight: "bold"
+              }}
+            >
+              Create Product
+            </Typography>
 
-          <div className="mb-3">
-            <label className="border text-white px-4 block w-full text-center rounded-lg cursor-pointer font-bold py-11">
-              {image ? image.name : "Upload Image"}
+            {imageUrl && (
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <img
+                  src={imageUrl}
+                  alt="product"
+                  style={{ maxWidth: '200px', height: 'auto' }}
+                />
+              </Box>
+            )}
 
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={uploadFileHandler}
-                className={!image ? "hidden" : "text-white"}
-              />
-            </label>
-          </div>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  component="label"
+                  fullWidth
+                  sx={{
+                    backgroundColor: colorPalette.primary,
+                    '&:hover': {
+                      backgroundColor: colorPalette.secondary
+                    }
+                  }}
+                >
+                  Upload Image
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={uploadFileHandler}
+                    hidden
+                  />
+                </Button>
+              </Grid>
 
-          <div className="p-3">
-            <div className="flex flex-wrap">
-              <div className="one">
-                <label htmlFor="name">Name</label> <br />
-                <input
-                  type="text"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
                 />
-              </div>
-              <div className="two ml-10 ">
-                <label htmlFor="name block">Price</label> <br />
-                <input
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
                   type="number"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  label="Price"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
                 />
-              </div>
-            </div>
-            <div className="flex flex-wrap">
-              <div className="one">
-                <label htmlFor="name block">Quantity</label> <br />
-                <input
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel sx={{ color: colorPalette.text.secondary }}>
+                    Category
+                  </InputLabel>
+                  <Select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    sx={{
+                      color: colorPalette.text.primary,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: colorPalette.accent,
+                      },
+                    }}
+                  >
+                    {categories?.map((c) => (
+                      <MenuItem key={c._id} value={c._id}>
+                        {c.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
                   type="number"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+                  label="Quantity"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
                 />
-              </div>
-              <div className="two ml-10 ">
-                <label htmlFor="name block">Brand</label> <br />
-                <input
-                  type="text"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Brand"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
                 />
-              </div>
-            </div>
+              </Grid>
 
-            <label htmlFor="" className="my-5">
-              Description
-            </label>
-            <textarea
-              type="text"
-              className="p-2 mb-3 bg-[#101011] border rounded-lg w-[95%] text-white"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            ></textarea>
-
-            <div className="flex justify-between">
-              <div>
-                <label htmlFor="name block">Count In Stock</label> <br />
-                <input
-                  type="text"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Stock"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: colorPalette.accent,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: colorPalette.text.secondary,
+                    },
+                    '& .MuiOutlinedInput-input': {
+                      color: colorPalette.text.primary,
+                    },
+                  }}
                 />
-              </div>
+              </Grid>
 
-              <div>
-                <label htmlFor="">Category</label> <br />
-                <select
-                  placeholder="Choose Category"
-                  className="p-4 mb-3 w-[30rem] border rounded-lg bg-[#101011] text-white"
-                  onChange={(e) => setCategory(e.target.value)}
+              <Grid item xs={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    backgroundColor: colorPalette.primary,
+                    color: colorPalette.text.primary,
+                    padding: '12px',
+                    fontSize: '1.1rem',
+                    '&:hover': {
+                      backgroundColor: colorPalette.secondary,
+                    },
+                  }}
                 >
-                  {categories?.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              className="py-4 px-10 mt-5 rounded-lg text-lg font-bold bg-pink-600"
-            >
-              Submit
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+                  Create Product
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

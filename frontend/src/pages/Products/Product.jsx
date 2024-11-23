@@ -1,29 +1,54 @@
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
 import HeartIcon from "./HeartIcon";
 
 const Product = ({ product }) => {
   return (
-    <div className="w-[30rem] ml-[2rem] p-3 relative">
-      <div className="relative">
-        <img
-          src={product.image}
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ position: 'relative' }}>
+        <CardMedia
+          component="img"
+          className="product-image"
+          image={product.image}
           alt={product.name}
-          className="w-[30rem] rounded"
         />
-        <HeartIcon product={product} />
-      </div>
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+          <HeartIcon product={product} />
+        </Box>
+      </Box>
 
-      <div className="p-4">
-        <Link to={`/product/${product._id}`}>
-          <h2 className="flex justify-between items-center">
-            <div className="text-lg">{product.name}</div>
-            <span className="bg-pink-100 text-pink-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Link to={`/product/${product._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center'
+          }}>
+            <Typography variant="h6" component="div" sx={{ 
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {product.name}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                bgcolor: 'pink.100',
+                color: 'pink.800',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: '9999px',
+                fontSize: '0.875rem',
+                fontWeight: 500
+              }}
+            >
               $ {product.price}
-            </span>
-          </h2>
+            </Typography>
+          </Box>
         </Link>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -3,7 +3,6 @@ import AdminMenu from "./AdminMenu";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useUpdateProductMutation,
-  useDeleteProductMutation,
   useGetProductByIdQuery,
   useUploadProductImageMutation,
 } from "../../redux/api/productApiSlice";
@@ -29,7 +28,6 @@ const AdminProductUpdate = () => {
 
   const [uploadProductImage] = useUploadProductImageMutation();
   const [updateProduct] = useUpdateProductMutation();
-  const [deleteProduct] = useDeleteProductMutation();
 
   useEffect(() => {
     if (productData && productData._id) {
@@ -97,28 +95,6 @@ const AdminProductUpdate = () => {
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      let answer = window.confirm(
-        "Are you sure you want to delete this product?"
-      );
-      if (!answer) return;
-
-      const { data } = await deleteProduct(params._id);
-      toast.success(`"${data.name}" is deleted`, {
-        position: toast.POSITION.TOP_RIGHT,
-        autoClose: 2000,
-      });
-      navigate("/admin/allproductslist");
-    } catch (err) {
-      console.log(err);
-      toast.error("Delete failed. Try again.", {
-        position: toast.POSITION.TOP_RIGHT,
-        autoClose: 2000,
-      });
-    }
-  };
-
   return (
     <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh', backgroundColor: '#121212' }}>
       <Grid item xs={12} md={8} lg={6}>
@@ -126,7 +102,7 @@ const AdminProductUpdate = () => {
           <AdminMenu />
           <div className="md:w-full p-3" style={{ backgroundColor: '#1e1e1e', padding: '20px', borderRadius: '8px' }}>
             <Typography variant="h5" gutterBottom style={{ color: '#e0f7fa' }}>
-              Update / Delete Product
+              Update Product
             </Typography>
 
             {image && (
@@ -267,17 +243,6 @@ const AdminProductUpdate = () => {
                     style={{ backgroundColor: '#00796b', color: '#fff' }}
                   >
                     Update Product
-                  </Button>
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    onClick={handleDelete}
-                    variant="contained"
-                    color="secondary"
-                    fullWidth
-                    style={{ backgroundColor: '#d32f2f', color: '#fff' }}
-                  >
-                    Delete Product
                   </Button>
                 </Grid>
               </Grid>

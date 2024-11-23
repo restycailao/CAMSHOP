@@ -1,17 +1,20 @@
+import { useState, useEffect, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Box, Button, Container, Typography, Badge, FormControl, Select, MenuItem } from "@mui/material";
+import { Box, Button, Container, Typography, Badge, FormControl, Grid, Select, MenuItem } from "@mui/material";
 import { useGetProductsQuery } from "../redux/api/productApiSlice";
 import Loader from "../components/Loader";
 import Message from "../components/Message";
-import Product from "./Products/Product";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../redux/features/cart/cartSlice";
+import { toast } from "react-toastify";
 
 const colorPalette = {
   primary: '#000000',
   secondary: '#1a1a1a',
   accent: '#333333',
   text: {
-    primary: '#ffffff',
-    secondary: '#b3b3b3'
+    primary: '#ffffff', 
+    secondary: '#e0e0e0' 
   },
   background: {
     main: '#0d0d0d',
@@ -21,7 +24,63 @@ const colorPalette = {
 
 const Home = () => {
   const { keyword } = useParams();
-  const { data, isLoading, isError } = useGetProductsQuery({ keyword });
+  const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [allProducts, setAllProducts] = useState([]);
+  const loadingRef = useRef(null);
+
+  const { data, isLoading, error, refetch } = useGetProductsQuery({ 
+    keyword,
+    page 
+  });
+
+  useEffect(() => {
+    if (data && data.products) {
+      if (page === 1) {
+        setAllProducts(data.products);
+      } else {
+        setAllProducts(prev => [...prev, ...data.products]);
+      }
+    }
+  }, [data, page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && data && data.hasMore) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
+    }
+
+    return () => {
+      if (loadingRef.current) {
+        observer.unobserve(loadingRef.current);
+      }
+    };
+  }, [data]);
+
+  const dispatch = useDispatch();
+
+  const addToCartHandler = async (product) => {
+    dispatch(addToCart({ ...product, qty: 1 }));
+    toast.success("Item added to cart", {
+      position: "top-right",
+      autoClose: 2000,
+    });
+  };
+
+  const handleCategoryChange = (event) => {
+    setCategory(event.target.value);
+    setPage(1);
+    setAllProducts([]);
+  };
 
   return (
     <>
@@ -42,7 +101,6 @@ const Home = () => {
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.4)'
-            // backdropFilter: 'blur(2px)',
           }
         }}
       >
@@ -59,7 +117,7 @@ const Home = () => {
           <Typography
             variant="h2"
             component="h1"
-            color="white"
+            color={colorPalette.text.primary}
             sx={{ mb: 3, fontWeight: 'bold' }}
           >
             Lens Collection - 2019
@@ -67,7 +125,7 @@ const Home = () => {
           
           <Typography
             variant="h6"
-            color="white"
+            color={colorPalette.text.secondary}
             sx={{ mb: 4, maxWidth: '600px' }}
           >
             A good photographer can shoot beautiful compositions with a crappy phone
@@ -101,10 +159,10 @@ const Home = () => {
           {/* Worldwide Delivery */}
           <Box sx={{ flex: 1, textAlign: 'center' }}>
             {/* Add your icon here */}
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: colorPalette.text.primary }}>
               Worldwide Delivery
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color={colorPalette.text.secondary}>
               We arrange million of deliveries everyday throughout the world. You can
               rest assured that we got you covered
             </Typography>
@@ -113,10 +171,10 @@ const Home = () => {
           {/* 24/7 Customer Services */}
           <Box sx={{ flex: 1, textAlign: 'center' }}>
             {/* Add your icon here */}
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: colorPalette.text.primary }}>
               24/7 Customer Services
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color={colorPalette.text.secondary}>
               Our dedicated support team guarantee to always support you - our beloved
               customer anytime of the day.
             </Typography>
@@ -125,10 +183,10 @@ const Home = () => {
           {/* Free Shipping */}
           <Box sx={{ flex: 1, textAlign: 'center' }}>
             {/* Add your icon here */}
-            <Typography variant="h6" sx={{ mb: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2, color: colorPalette.text.primary }}>
               Free Shipping
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color={colorPalette.text.secondary}>
               No shipping fee for delivery distance under 20km. And we can promise you
               the cheapest fee ever for additional km
             </Typography>
@@ -137,21 +195,20 @@ const Home = () => {
       </Container>
 
       {/* Featured Products Section */}
-      <Container maxWidth="lg" sx={{ py: 8, backgroundColor: colorPalette.background.main }}>
+      <Box sx={{ width: '100%', py: 9, backgroundColor: colorPalette.background.main }}>
         {isLoading ? (
           <Loader />
-        ) : isError ? (
-          <Message variant="danger">
-            {isError?.data.message || isError.error}
-          </Message>
+        ) : error ? (
+          <Message variant="error">{error?.data?.message || error.error}</Message>
         ) : (
           <>
             <Box 
               sx={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
+                justifyContent: 'center', 
                 alignItems: 'center',
-                mb: 4
+                mb: 4,
+                px: 2
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -172,7 +229,8 @@ const Home = () => {
 
               <FormControl sx={{ minWidth: 200 }}>
                 <Select
-                  value="category"
+                  value={category}
+                  onChange={handleCategoryChange}
                   displayEmpty
                   variant="outlined"
                   size="small"
@@ -184,7 +242,7 @@ const Home = () => {
                     }
                   }}
                 >
-                  <MenuItem value="category">Category</MenuItem>
+                  <MenuItem value="">All Categories</MenuItem>
                   <MenuItem value="cameras">Cameras</MenuItem>
                   <MenuItem value="lenses">Lenses</MenuItem>
                   <MenuItem value="accessories">Accessories</MenuItem>
@@ -194,13 +252,18 @@ const Home = () => {
 
             <Box sx={{ 
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 3
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateRows: 'repeat(auto-fit, auto)',
+              gap: 3,
+              justifyItems: 'center',
+              px: 2
             }}>
-              {data.products.map((product) => (
+              {allProducts.map((product) => (
                 <Box 
                   key={product._id}
                   sx={{
+                    width: '100%',
+                    maxWidth: '625px',
                     backgroundColor: colorPalette.background.paper,
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -266,6 +329,44 @@ const Home = () => {
                       </Typography>
                     </Link>
                     
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: colorPalette.text.secondary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          mb: 0.5
+                        }}
+                      >
+                        <span style={{ fontWeight: 'bold' }}>Type:</span> {product.category?.cameraType}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: colorPalette.text.secondary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          mb: 0.5
+                        }}
+                      >
+                        <span style={{ fontWeight: 'bold' }}>Sensor:</span> {product.category?.sensorSize}
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: colorPalette.text.secondary,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5
+                        }}
+                      >
+                        <span style={{ fontWeight: 'bold' }}>Use Case:</span> {product.category?.primaryUseCase}
+                      </Typography>
+                    </Box>
+                    
                     <Typography 
                       variant="body2" 
                       sx={{ 
@@ -330,9 +431,23 @@ const Home = () => {
                 </Box>
               ))}
             </Box>
+
+            {/* Loading indicator for infinite scroll */}
+            <Box 
+              ref={loadingRef} 
+              sx={{ 
+                height: '50px', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                mt: 2 
+              }}
+            >
+              {data?.hasMore && <Loader />}
+            </Box>
           </>
         )}
-      </Container>
+      </Box>
     </>
   );
 };
