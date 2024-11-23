@@ -6,6 +6,6 @@ const baseQuery = fetchBaseQuery({ baseUrl: BASE_URL });
 export const apiSlice = createApi({
   baseQuery,
   //dadagdagan pag gusto mo mag fetch ng data 
-  tagTypes: ["Product", "Order", "User", "Category"],
+  tagTypes: ["Product", "Order", "User", "Category", "Reviews"],
   endpoints: () => ({}),
 });

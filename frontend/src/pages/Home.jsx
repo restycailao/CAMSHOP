@@ -267,27 +267,11 @@ const Home = () => {
                     backgroundColor: colorPalette.background.paper,
                     borderRadius: 1,
                     overflow: 'hidden',
-                    position: 'relative'
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
                   }}
                 >
-                  {/* Sale Badge */}
-                  {product.isOnSale && (
-                    <Badge
-                      sx={{
-                        position: 'absolute',
-                        top: 16,
-                        left: 16,
-                        backgroundColor: '#ff4444',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Sale
-                    </Badge>
-                  )}
-
                   {/* Product Image - Clickable */}
                   <Link to={`/product/${product._id}`}>
                     <Box
@@ -296,135 +280,73 @@ const Home = () => {
                       alt={product.name}
                       sx={{
                         width: '100%',
-                        height: 'auto',
-                        aspectRatio: '1',
+                        height: '300px',
                         objectFit: 'contain',
-                        padding: 2,
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.05)'
-                        }
+                        backgroundColor: '#1e1e1e'
                       }}
                     />
                   </Link>
 
                   {/* Product Info */}
                   <Box sx={{ p: 2 }}>
-                    <Link 
-                      to={`/product/${product._id}`}
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
-                          mb: 1,
-                          color: colorPalette.text.primary,
-                          '&:hover': {
-                            color: colorPalette.text.secondary
-                          }
-                        }}
-                      >
+                    {/* Title and Brand */}
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="h6" sx={{ color: colorPalette.text.primary, mb: 0.5 }}>
                         {product.name}
                       </Typography>
-                    </Link>
-                    
-                    <Box sx={{ mb: 2 }}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: colorPalette.text.secondary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          mb: 0.5
-                        }}
-                      >
-                        <span style={{ fontWeight: 'bold' }}>Type:</span> {product.category?.cameraType}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: colorPalette.text.secondary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          mb: 0.5
-                        }}
-                      >
-                        <span style={{ fontWeight: 'bold' }}>Sensor:</span> {product.category?.sensorSize}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: colorPalette.text.secondary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5
-                        }}
-                      >
-                        <span style={{ fontWeight: 'bold' }}>Use Case:</span> {product.category?.primaryUseCase}
+                      <Typography variant="subtitle2" sx={{ color: colorPalette.text.secondary }}>
+                        Brand: {product.brand}
                       </Typography>
                     </Box>
-                    
+
+                    {/* Description */}
                     <Typography 
                       variant="body2" 
                       sx={{ 
+                        color: colorPalette.text.secondary,
                         mb: 2,
-                        color: colorPalette.text.secondary 
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
                       }}
                     >
                       {product.description}
                     </Typography>
 
+                    {/* Price and Actions */}
                     <Box sx={{ 
                       display: 'flex', 
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      mt: 'auto'
                     }}>
-                      <Button
-                        variant="contained"
-                        onClick={() => addToCartHandler(product)}
-                        sx={{
-                          backgroundColor: colorPalette.primary,
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
                           color: colorPalette.text.primary,
-                          '&:hover': {
-                            backgroundColor: colorPalette.secondary
-                          }
+                          fontWeight: 'bold'
                         }}
                       >
-                        Add to Cart
-                      </Button>
+                        ${product.price.toFixed(2)}
+                      </Typography>
 
-                      <Link 
+                      <Link
                         to={`/product/${product._id}`}
                         style={{ textDecoration: 'none' }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography 
-                            variant="h6" 
-                            sx={{ 
-                              color: colorPalette.text.primary,
-                              fontWeight: 500,
-                              '&:hover': {
-                                color: colorPalette.text.secondary
-                              }
-                            }}
-                          >
-                            ${product.price}
-                          </Typography>
-                          {product.isOnSale && (
-                            <Typography 
-                              variant="body2" 
-                              sx={{ 
-                                textDecoration: 'line-through',
-                                color: colorPalette.text.secondary 
-                              }}
-                            >
-                              ${product.originalPrice}
-                            </Typography>
-                          )}
-                        </Box>
+                        <Button
+                          variant="contained"
+                          sx={{
+                            backgroundColor: '#ff7043',
+                            '&:hover': {
+                              backgroundColor: '#f4511e'
+                            }
+                          }}
+                        >
+                          Details
+                        </Button>
                       </Link>
                     </Box>
                   </Box>

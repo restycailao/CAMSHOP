@@ -214,6 +214,85 @@ const filterProducts = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get all reviews (admin)
+// @route   GET /api/products/reviews
+// @access  Private/Admin
+const getAllReviews = asyncHandler(async (req, res) => {
+  try {
+    const products = await Product.find({})
+      .select('name image reviews')
+      .populate({
+        path: 'reviews.user',
+        select: 'name email'
+      });
+
+    let allReviews = [];
+    products.forEach(product => {
+      if (product.reviews && product.reviews.length > 0) {
+        product.reviews.forEach(review => {
+          allReviews.push({
+            _id: review._id,
+            rating: review.rating,
+            comment: review.comment,
+            user: review.user,
+            productId: product._id,
+            productName: product.name,
+            productImage: product.image,
+            createdAt: review.createdAt
+          });
+        });
+      }
+    });
+
+    res.json(allReviews);
+  } catch (error) {
+    console.error("Error in getAllReviews:", error);
+    res.status(500).json({ message: "Error fetching reviews" });
+  }
+});
+
+// @desc    Delete review
+// @route   DELETE /api/products/:id/reviews/:reviewId
+// @access  Private/Admin
+const deleteReview = asyncHandler(async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      res.status(404);
+      throw new Error('Product not found');
+    }
+
+    // Find review index
+    const reviewIndex = product.reviews.findIndex(
+      r => r._id.toString() === req.params.reviewId
+    );
+
+    if (reviewIndex === -1) {
+      res.status(404);
+      throw new Error('Review not found');
+    }
+
+    // Remove review
+    product.reviews.splice(reviewIndex, 1);
+
+    // Recalculate rating
+    if (product.reviews.length > 0) {
+      product.rating = (
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length
+      ).toFixed(1);
+    } else {
+      product.rating = 0;
+    }
+
+    await product.save();
+    res.json({ message: 'Review deleted' });
+  } catch (error) {
+    console.error("Error in deleteReview:", error);
+    res.status(500).json({ message: error.message || "Error deleting review" });
+  }
+});
+
 export {
   addProduct,
   updateProductDetails,
@@ -225,4 +304,6 @@ export {
   fetchTopProducts,
   fetchNewProducts,
   filterProducts,
+  getAllReviews,
+  deleteReview,
 };

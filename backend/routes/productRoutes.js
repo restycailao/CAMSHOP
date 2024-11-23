@@ -14,9 +14,12 @@ import {
   fetchTopProducts,
   fetchNewProducts,
   filterProducts,
+  getAllReviews,
+  deleteReview,
 } from "../controllers/productController.js";
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
 import checkId from "../middlewares/checkId.js";
+import verifyPurchase from "../middlewares/verifyPurchase.js";
 
 router
   .route("/")
@@ -24,7 +27,11 @@ router
   .post(authenticate, authorizeAdmin, formidable(), addProduct);
 
 router.route("/allproducts").get(fetchAllProducts);
-router.route("/:id/reviews").post(authenticate, checkId, addProductReview);
+
+// Review routes
+router.route("/:id/reviews").post(authenticate, checkId, verifyPurchase, addProductReview);
+router.route("/reviews").get(authenticate, authorizeAdmin, getAllReviews);
+router.route("/:id/reviews/:reviewId").delete(authenticate, authorizeAdmin, deleteReview);
 
 router.get("/top", fetchTopProducts);
 router.get("/new", fetchNewProducts);

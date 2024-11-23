@@ -25,89 +25,138 @@ const AllProducts = () => {
   const handleBulkDelete = async (selectedRows) => {
     const idsToDelete = selectedRows.map((row) => products[row.dataIndex]._id);
     
-    if (!window.confirm(`Are you sure you want to delete ${idsToDelete.length} products?`)) {
+    if (idsToDelete.length === 0) {
+      toast.error("Please select products to delete");
       return;
     }
 
-    const deletePromise = async () => {
-      let successCount = 0;
-      let failCount = 0;
+    toast.info(
+      <div>
+        <p>Are you sure you want to delete {idsToDelete.length} selected products?</p>
+        <div className="mt-2 flex justify-end space-x-2">
+          <button
+            onClick={() => {
+              const deletePromise = async () => {
+                let successCount = 0;
+                let failCount = 0;
 
-      for (const productId of idsToDelete) {
-        try {
-          const { data } = await deleteProduct(productId);
-          if (data) {
-            successCount++;
-          } else {
-            failCount++;
-          }
-        } catch (err) {
-          console.error(`Failed to delete product ${productId}:`, err);
-          failCount++;
-        }
-      }
+                for (const productId of idsToDelete) {
+                  try {
+                    const { data } = await deleteProduct(productId);
+                    if (data) {
+                      successCount++;
+                    } else {
+                      failCount++;
+                    }
+                  } catch (err) {
+                    console.error(`Failed to delete product ${productId}:`, err);
+                    failCount++;
+                  }
+                }
 
-      if (failCount > 0) {
-        throw new Error(`Failed to delete ${failCount} products`);
-      }
+                if (failCount > 0) {
+                  throw new Error(`Failed to delete ${failCount} products`);
+                }
 
-      return `Successfully deleted ${successCount} products`;
-    };
+                return `Successfully deleted ${successCount} products`;
+              };
 
-    hotToast.promise(
-      deletePromise(),
+              hotToast.promise(
+                deletePromise(),
+                {
+                  loading: 'Deleting products...',
+                  success: (message) => message,
+                  error: (err) => err.message,
+                },
+                {
+                  style: {
+                    minWidth: '250px',
+                  },
+                  success: {
+                    duration: 5000,
+                    style: {
+                      background: '#2e7d32',
+                      color: 'white',
+                    },
+                  },
+                  error: {
+                    style: {
+                      background: '#d32f2f',
+                      color: 'white',
+                    },
+                  },
+                  loading: {
+                    style: {
+                      background: '#333',
+                      color: 'white',
+                    },
+                  },
+                }
+              );
+
+              setExpandedRows([]); // Close all expanded rows
+              refetch(); // Refetch products list
+              toast.dismiss();
+            }}
+            className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          >
+            Delete All
+          </button>
+          <button
+            onClick={() => toast.dismiss()}
+            className="bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>,
       {
-        loading: 'Deleting products...',
-        success: (message) => message,
-        error: (err) => err.message,
-      },
-      {
-        style: {
-          minWidth: '250px',
-        },
-        success: {
-          duration: 5000,
-          style: {
-            background: '#2e7d32',
-            color: 'white',
-          },
-        },
-        error: {
-          style: {
-            background: '#d32f2f',
-            color: 'white',
-          },
-        },
-        loading: {
-          style: {
-            background: '#333',
-            color: 'white',
-          },
-        },
+        autoClose: false,
+        closeButton: false,
+        closeOnClick: false,
+        draggable: false,
       }
     );
-
-    setExpandedRows([]); // Close all expanded rows
-    refetch(); // Refetch products list
   };
 
   const handleDelete = async (productId) => {
-    try {
-      let answer = window.confirm(
-        "Are you sure you want to delete this product?"
-      );
-      if (!answer) return;
-
-      const { data } = await deleteProduct(productId);
-      if (data) {
-        toast.success(`"${data.name}" is deleted`);
-        setExpandedRows([]); // Close all expanded rows
-        refetch(); // Refetch products list
+    toast.info(
+      <div>
+        <p>Are you sure you want to delete this product?</p>
+        <div className="mt-2 flex justify-end space-x-2">
+          <button
+            onClick={() => {
+              deleteProduct(productId)
+                .unwrap()
+                .then(() => {
+                  toast.success("Product deleted successfully");
+                  setExpandedRows([]); // Close all expanded rows
+                  refetch(); // Refetch products list
+                })
+                .catch((err) => {
+                  toast.error(err?.data?.message || err.error || "Error deleting product");
+                });
+              toast.dismiss();
+            }}
+            className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss()}
+            className="bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>,
+      {
+        autoClose: false,
+        closeButton: false,
+        closeOnClick: false,
+        draggable: false,
       }
-    } catch (err) {
-      console.log(err);
-      toast.error("Delete failed. Try again.");
-    }
+    );
   };
 
   const columns = [

@@ -19,6 +19,7 @@ import {
   People,
   ShoppingCart,
   Close,
+  RateReview,
 } from "@mui/icons-material";
 
 const AdminMenu = () => {
@@ -32,6 +33,7 @@ const AdminMenu = () => {
     { path: "/admin/categorylist", name: "Categories", icon: <Category /> },
     { path: "/admin/orderlist", name: "Orders", icon: <ShoppingCart /> },
     { path: "/admin/userlist", name: "Users", icon: <People /> },
+    { path: "/admin/reviews", name: "Reviews", icon: <RateReview /> },
   ];
 
   const toggleMenu = () => {
