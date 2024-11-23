@@ -14,14 +14,14 @@ const AdminProductUpdate = () => {
   const params = useParams();
   const { data: productData } = useGetProductByIdQuery(params._id);
 
-  const [image, setImage] = useState(productData?.image || "");
-  const [name, setName] = useState(productData?.name || "");
-  const [description, setDescription] = useState(productData?.description || "");
-  const [price, setPrice] = useState(productData?.price || "");
-  const [category, setCategory] = useState(productData?.category || "");
-  const [quantity, setQuantity] = useState(productData?.quantity || "");
-  const [brand, setBrand] = useState(productData?.brand || "");
-  const [stock, setStock] = useState(productData?.countInStock || "");
+  const [image, setImage] = useState("");
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [brand, setBrand] = useState("");
+  const [stock, setStock] = useState("");
 
   const navigate = useNavigate();
   const { data: categories = [] } = useFetchCategoriesQuery();
@@ -34,10 +34,11 @@ const AdminProductUpdate = () => {
       setName(productData.name);
       setDescription(productData.description);
       setPrice(productData.price);
-      setCategory(productData.category?._id);
+      setCategory(productData.category?._id || "");
       setQuantity(productData.quantity);
       setBrand(productData.brand);
       setImage(productData.image);
+      setStock(productData.countInStock);
     }
   }, [productData]);
 
@@ -72,26 +73,20 @@ const AdminProductUpdate = () => {
       formData.append("brand", brand);
       formData.append("countInStock", stock);
 
-      const data = await updateProduct({ productId: params._id, formData });
+      const { data } = await updateProduct({ 
+        productId: params._id, 
+        formData 
+      }).unwrap();
 
       if (data?.error) {
-        toast.error(data.error, {
-          position: toast.POSITION.TOP_RIGHT,
-          autoClose: 2000,
-        });
+        toast.error(data.error);
       } else {
-        toast.success(`Product successfully updated`, {
-          position: toast.POSITION.TOP_RIGHT,
-          autoClose: 2000,
-        });
+        toast.success("Product successfully updated");
         navigate("/admin/allproductslist");
       }
     } catch (err) {
-      console.log(err);
-      toast.error("Product update failed. Try again.", {
-        position: toast.POSITION.TOP_RIGHT,
-        autoClose: 2000,
-      });
+      console.error(err);
+      toast.error("Product update failed. Try again.");
     }
   };
 
@@ -201,18 +196,20 @@ const AdminProductUpdate = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth required variant="filled" style={{ backgroundColor: '#263238' }}>
+                  <FormControl fullWidth variant="filled" style={{ backgroundColor: '#263238' }}>
                     <InputLabel style={{ color: '#e0f7fa' }}>Category</InputLabel>
                     <Select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
+                      required
                       style={{ color: '#e0f7fa' }}
                     >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      {categories.map((cat) => (
-                        <MenuItem key={cat._id} value={cat._id}>
+                      {categories?.map((cat) => (
+                        <MenuItem 
+                          key={cat._id} 
+                          value={cat._id}
+                          selected={cat._id === category}
+                        >
                           {cat.name}
                         </MenuItem>
                       ))}

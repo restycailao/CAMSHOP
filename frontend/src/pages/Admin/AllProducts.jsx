@@ -7,6 +7,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from "react-router-dom";
 import AdminMenu from "./AdminMenu";
 import { toast } from "react-toastify";
+import hotToast from 'react-hot-toast';
 
 const AllProducts = () => {
   const { data: products, isLoading, isError, refetch } = useAllProductsQuery();
@@ -28,29 +29,63 @@ const AllProducts = () => {
       return;
     }
 
-    let successCount = 0;
-    let failCount = 0;
+    const deletePromise = async () => {
+      let successCount = 0;
+      let failCount = 0;
 
-    for (const productId of idsToDelete) {
-      try {
-        const { data } = await deleteProduct(productId);
-        if (data) {
-          successCount++;
-        } else {
+      for (const productId of idsToDelete) {
+        try {
+          const { data } = await deleteProduct(productId);
+          if (data) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (err) {
+          console.error(`Failed to delete product ${productId}:`, err);
           failCount++;
         }
-      } catch (err) {
-        console.error(`Failed to delete product ${productId}:`, err);
-        failCount++;
       }
-    }
 
-    if (successCount > 0) {
-      toast.success(`Successfully deleted ${successCount} products`);
-    }
-    if (failCount > 0) {
-      toast.error(`Failed to delete ${failCount} products`);
-    }
+      if (failCount > 0) {
+        throw new Error(`Failed to delete ${failCount} products`);
+      }
+
+      return `Successfully deleted ${successCount} products`;
+    };
+
+    hotToast.promise(
+      deletePromise(),
+      {
+        loading: 'Deleting products...',
+        success: (message) => message,
+        error: (err) => err.message,
+      },
+      {
+        style: {
+          minWidth: '250px',
+        },
+        success: {
+          duration: 5000,
+          style: {
+            background: '#2e7d32',
+            color: 'white',
+          },
+        },
+        error: {
+          style: {
+            background: '#d32f2f',
+            color: 'white',
+          },
+        },
+        loading: {
+          style: {
+            background: '#333',
+            color: 'white',
+          },
+        },
+      }
+    );
 
     setExpandedRows([]); // Close all expanded rows
     refetch(); // Refetch products list
