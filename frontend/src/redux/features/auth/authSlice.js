@@ -13,17 +13,20 @@ const authSlice = createSlice({
     setCredentials: (state, action) => {
       state.userInfo = action.payload;
       localStorage.setItem("userInfo", JSON.stringify(action.payload));
-
-      const expirationTime = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days
-      localStorage.setItem("expirationTime", expirationTime);
     },
     logout: (state) => {
       state.userInfo = null;
-      localStorage.clear();
+      localStorage.removeItem("userInfo");
+    },
+    updateProfilePicture: (state, action) => {
+      if (state.userInfo) {
+        state.userInfo.profilePicture = action.payload;
+        localStorage.setItem("userInfo", JSON.stringify(state.userInfo));
+      }
     },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, updateProfilePicture } = authSlice.actions;
 
 export default authSlice.reducer;

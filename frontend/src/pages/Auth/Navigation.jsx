@@ -116,36 +116,47 @@ const Navigation = () => {
         {/* Right side auth section */}
         {userInfo ? (
           <>
-            <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              {userInfo.username}
-            </Typography>
-            <IconButton color="inherit" onClick={handleMenuOpen}>
-              <ArrowDropDown />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                component="img"
+                src={userInfo.profilePicture || "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"}
+                alt={userInfo.username}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #fff'
+                }}
+              />
+              <Typography variant="subtitle1">
+                {userInfo.username}
+              </Typography>
+              <IconButton color="inherit" onClick={handleMenuOpen}>
+                <ArrowDropDown />
+              </IconButton>
+            </Box>
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
               onClose={handleMenuClose}
+              PaperProps={{
+                sx: {
+                  bgcolor: '#1a1a1a',
+                  color: 'white',
+                  '& .MuiMenuItem-root': {
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.08)',
+                    },
+                  },
+                },
+              }}
             >
-              {userInfo.isAdmin && (
-                <>
-                  <MenuItem component={Link} to="/admin/dashboard" onClick={handleMenuClose}>
-                    Dashboard
-                  </MenuItem>
-                  {/* <MenuItem component={Link} to="/admin/productlist" onClick={handleMenuClose}>
-                    Products
-                  </MenuItem>
-                  <MenuItem component={Link} to="/admin/categorylist" onClick={handleMenuClose}>
-                    Category
-                  </MenuItem>
-                  <MenuItem component={Link} to="/admin/orderlist" onClick={handleMenuClose}>
-                    Orders
-                  </MenuItem>
-                  <MenuItem component={Link} to="/admin/userlist" onClick={handleMenuClose}>
-                    Users
-                  </MenuItem> */}
-                </>
-              )}
+              {userInfo.isAdmin && [
+                <MenuItem key="dashboard" component={Link} to="/admin/dashboard" onClick={handleMenuClose}>
+                  Dashboard
+                </MenuItem>
+              ]}
               <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                 Profile
               </MenuItem>

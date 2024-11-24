@@ -138,52 +138,39 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
 
 const addProductReview = asyncHandler(async (req, res) => {
   const { rating, comment } = req.body;
-
   const product = await Product.findById(req.params.id);
 
-  if (product) {
-    const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
-    );
-
-    if (alreadyReviewed) {
-      res.status(400);
-      throw new Error("Product already reviewed");
-    }
-
-    const review = {
-      name: req.user.username,
-      rating: Number(rating),
-      comment,
-      user: req.user._id,
-    };
-
-    product.reviews.push(review);
-
-    product.numReviews = product.reviews.length;
-
-    product.rating =
-      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-      product.reviews.length;
-
-    await product.save();
-
-    // If the comment was filtered, send a warning message
-    if (req.body.wasFiltered) {
-      res.status(201).json({ 
-        message: "Review added successfully, but some words were filtered for content.",
-        review 
-      });
-    } else {
-      res.status(201).json({ 
-        message: "Review added successfully", 
-        review 
-      });
-    }
-  } else {
+  if (!product) {
     res.status(404);
     throw new Error("Product not found");
   }
+
+  // Check if user already reviewed
+  const alreadyReviewed = product.reviews.find(
+    (r) => r.user.toString() === req.user._id.toString()
+  );
+
+  if (alreadyReviewed) {
+    res.status(400);
+    throw new Error("Product already reviewed");
+  }
+
+  const review = {
+    name: req.user.username,
+    rating: Number(rating),
+    comment,
+    user: req.user._id,
+  };
+
+  product.reviews.push(review);
+  product.numReviews = product.reviews.length;
+
+  product.rating =
+    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+    product.reviews.length;
+
+  await product.save();
+  res.status(201).json({ message: "Review added" });
 });
 
 const fetchTopProducts = asyncHandler(async (req, res) => {
@@ -301,6 +288,34 @@ const deleteReview = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteProductImage = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  const { imageUrl } = req.body;
+  if (!imageUrl) {
+    res.status(400);
+    throw new Error("Image URL is required");
+  }
+
+  // Remove the image URL from the images array
+  if (product.images) {
+    product.images = product.images.filter(img => img !== imageUrl);
+  }
+
+  // If it's the main image, clear it
+  if (product.image === imageUrl) {
+    product.image = product.images?.[0] || ""; // Set to first image in array or empty string
+  }
+
+  await product.save();
+  res.json({ message: "Image removed" });
+});
+
 export {
   addProduct,
   updateProductDetails,
@@ -314,4 +329,5 @@ export {
   filterProducts,
   getAllReviews,
   deleteReview,
+  deleteProductImage,
 };

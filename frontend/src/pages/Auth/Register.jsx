@@ -5,12 +5,15 @@ import Loader from "../../components/Loader";
 import { useRegisterMutation } from "../../redux/api/usersApiSlice";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
+import { uploadImageToCloudinary } from "../../utils/cloudinaryUtils";
 
 const Register = () => {
   const [username, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -29,6 +32,23 @@ const Register = () => {
     }
   }, [navigate, redirect, userInfo]);
 
+  const uploadImageHandler = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const imageUrl = await uploadImageToCloudinary(file);
+      setProfilePicture(imageUrl);
+      setUploading(false);
+      toast.success("Profile picture uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error(error.message || "Error uploading image");
+      setUploading(false);
+    }
+  };
+
   const submitHandler = async (e) => {
     e.preventDefault();
 
@@ -36,7 +56,12 @@ const Register = () => {
       toast.error("Passwords do not match");
     } else {
       try {
-        const res = await register({ username, email, password }).unwrap();
+        const res = await register({ 
+          username, 
+          email, 
+          password,
+          profilePicture: profilePicture || undefined
+        }).unwrap();
         dispatch(setCredentials({ ...res }));
         navigate(redirect);
         toast.success("User successfully registered");
@@ -121,10 +146,34 @@ const Register = () => {
             />
           </div>
 
+          <div className="my-[2rem]">
+            <label
+              htmlFor="profilePicture"
+              className="block text-sm font-medium text-white"
+            >
+              Profile Picture
+            </label>
+            <input
+              type="file"
+              id="profilePicture"
+              className="mt-1 p-2 border rounded w-full text-white"
+              onChange={uploadImageHandler}
+              accept="image/*"
+            />
+            {uploading && <Loader />}
+            {profilePicture && (
+              <img
+                src={profilePicture}
+                alt="Profile Preview"
+                className="mt-2 w-20 h-20 rounded-full object-cover"
+              />
+            )}
+          </div>
+
           <button
-            disabled={isLoading}
+            disabled={isLoading || uploading}
             type="submit"
-            className="bg-pink-500 text-white px-4 py-2 rounded cursor-pointer my-[1rem]"
+            className="bg-pink-500 text-white px-4 py-2 rounded cursor-pointer my-[1rem] disabled:opacity-50"
           >
             {isLoading ? "Registering..." : "Register"}
           </button>

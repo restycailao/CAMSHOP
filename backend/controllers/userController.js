@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import createToken from "../utils/createToken.js";
 
 const createUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, profilePicture } = req.body;
 
   if (!username || !email || !password) {
     throw new Error("Please fill all the inputs.");
@@ -15,7 +15,12 @@ const createUser = asyncHandler(async (req, res) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const newUser = new User({ username, email, password: hashedPassword });
+  const newUser = new User({ 
+    username, 
+    email, 
+    password: hashedPassword,
+    profilePicture: profilePicture || "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
+  });
 
   try {
     await newUser.save();
@@ -26,6 +31,7 @@ const createUser = asyncHandler(async (req, res) => {
       username: newUser.username,
       email: newUser.email,
       isAdmin: newUser.isAdmin,
+      profilePicture: newUser.profilePicture
     });
   } catch (error) {
     res.status(400);
@@ -35,9 +41,6 @@ const createUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
-  console.log(email);
-  console.log(password);
 
   const existingUser = await User.findOne({ email });
 
@@ -55,6 +58,7 @@ const loginUser = asyncHandler(async (req, res) => {
         username: existingUser.username,
         email: existingUser.email,
         isAdmin: existingUser.isAdmin,
+        profilePicture: existingUser.profilePicture
       });
       return;
     }
@@ -63,7 +67,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const logoutCurrentUser = asyncHandler(async (req, res) => {
   res.cookie("jwt", "", {
-    httyOnly: true,
+    httpOnly: true,
     expires: new Date(0),
   });
 
@@ -83,6 +87,7 @@ const getCurrentUserProfile = asyncHandler(async (req, res) => {
       _id: user._id,
       username: user.username,
       email: user.email,
+      profilePicture: user.profilePicture
     });
   } else {
     res.status(404);
@@ -96,6 +101,7 @@ const updateCurrentUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     user.username = req.body.username || user.username;
     user.email = req.body.email || user.email;
+    user.profilePicture = req.body.profilePicture || user.profilePicture;
 
     if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
@@ -110,6 +116,7 @@ const updateCurrentUserProfile = asyncHandler(async (req, res) => {
       username: updatedUser.username,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
+      profilePicture: updatedUser.profilePicture
     });
   } else {
     res.status(404);
@@ -138,7 +145,12 @@ const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select("-password");
 
   if (user) {
-    res.json(user);
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      profilePicture: user.profilePicture
+    });
   } else {
     res.status(404);
     throw new Error("User not found");
@@ -152,6 +164,7 @@ const updateUserById = asyncHandler(async (req, res) => {
     user.username = req.body.username || user.username;
     user.email = req.body.email || user.email;
     user.isAdmin = Boolean(req.body.isAdmin);
+    user.profilePicture = req.body.profilePicture || user.profilePicture;
 
     const updatedUser = await user.save();
 
@@ -160,6 +173,7 @@ const updateUserById = asyncHandler(async (req, res) => {
       username: updatedUser.username,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
+      profilePicture: updatedUser.profilePicture
     });
   } else {
     res.status(404);

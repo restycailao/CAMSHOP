@@ -31,27 +31,32 @@ export const productApiSlice = apiSlice.injectEndpoints({
     }),
 
     createProduct: builder.mutation({
-      query: (productData) => ({
+      query: (data) => ({
         url: `${PRODUCT_URL}`,
         method: "POST",
-        body: productData,
+        body: data,
+        formData: true,
       }),
       invalidatesTags: ["Product"],
     }),
 
     updateProduct: builder.mutation({
-      query: ({ productId, formData }) => ({
+      query: ({ productId, updatedProduct }) => ({
         url: `${PRODUCT_URL}/${productId}`,
         method: "PUT",
-        body: formData,
+        body: updatedProduct,
+        formData: true,
       }),
+      invalidatesTags: ["Product"],
     }),
 
     uploadProductImage: builder.mutation({
       query: (data) => ({
-        url: `${UPLOAD_URL}`,
+        url: `${UPLOAD_URL}/cloudinary`,
         method: "POST",
         body: data,
+        formData: true,
+        timeout: 60000, // 60 second timeout
       }),
     }),
 
@@ -60,7 +65,16 @@ export const productApiSlice = apiSlice.injectEndpoints({
         url: `${PRODUCT_URL}/${productId}`,
         method: "DELETE",
       }),
-      providesTags: ["Product"],
+      invalidatesTags: ["Product"],
+    }),
+
+    deleteProductImage: builder.mutation({
+      query: ({ productId, imageUrl }) => ({
+        url: `${PRODUCT_URL}/${productId}/image`,
+        method: "DELETE",
+        body: { imageUrl },
+      }),
+      invalidatesTags: ["Product"],
     }),
 
     createReview: builder.mutation({
@@ -99,9 +113,10 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useUploadProductImageMutation,
   useCreateReviewMutation,
   useGetTopProductsQuery,
   useGetNewProductsQuery,
-  useUploadProductImageMutation,
   useGetFilteredProductsQuery,
+  useDeleteProductImageMutation,
 } = productApiSlice;
