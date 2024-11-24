@@ -9,7 +9,8 @@ import {
 } from "../../redux/api/productApiSlice";
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import { toast } from "react-toastify";
-import { Grid, TextField, Button, Select, MenuItem, InputLabel, FormControl, Typography, Box } from "@mui/material";
+import { Grid, TextField, Button, Select, MenuItem, InputLabel, FormControl, Typography, Box, IconButton } from "@mui/material";
+import Delete from '@mui/icons-material/Delete';
 
 const AdminProductUpdate = () => {
   const params = useParams();
@@ -27,8 +28,7 @@ const AdminProductUpdate = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [stock, setStock] = useState(0);
-  const [image, setImage] = useState("");
-  const [uploading, setUploading] = useState(false);
+  const [images, setImages] = useState(product?.images || []);
 
   useEffect(() => {
     if (product) {
@@ -39,57 +39,78 @@ const AdminProductUpdate = () => {
       setQuantity(product.quantity);
       setBrand(product.brand);
       setStock(product.countInStock);
-      setImage(product.image);
+      setImages(product.images || []);
     }
   }, [product]);
 
   const uploadFileHandler = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("image", file);
+    const files = Array.from(e.target.files);
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData();
+      formData.append("image", file);
+      try {
+        const res = await uploadProductImage(formData).unwrap();
+        if (res.error) {
+          throw new Error(res.error.message || 'Upload failed');
+        }
+        return res.image;
+      } catch (err) {
+        console.error('Upload error:', err);
+        if (err.name === 'TimeoutError') {
+          toast.error('Upload timed out. Please try with a smaller image or check your connection.');
+        } else {
+          toast.error(err?.data?.message || err.message || 'Failed to upload image');
+        }
+        return null;
+      }
+    });
 
     try {
-      setUploading(true);
-      const result = await uploadProductImage(formData).unwrap();
-      if (result && result.image) {
-        setImage(result.image);
-        toast.success("Image uploaded successfully");
-      } else {
-        throw new Error("Invalid response from server");
+      const uploadedImages = await Promise.all(uploadPromises);
+      const validImages = uploadedImages.filter(img => img !== null);
+      if (validImages.length > 0) {
+        setImages(prev => [...prev, ...validImages]);
+        toast.success('Images uploaded successfully');
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(error?.data?.message || "Failed to upload image");
-    } finally {
-      setUploading(false);
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error('Failed to upload some images');
     }
+  };
+
+  const removeImage = (indexToRemove) => {
+    setImages(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('price', price);
-      formData.append('category', category);
-      formData.append('quantity', quantity);
-      formData.append('brand', brand);
-      formData.append('countInStock', stock);
-      formData.append('image', image);
 
-      const result = await updateProduct({ 
-        productId: params._id, 
-        updatedProduct: formData 
+    try {
+      const productData = {
+        name,
+        description,
+        price,
+        category,
+        quantity,
+        brand,
+        countInStock: stock,
+        images: images
+      };
+
+      const { data } = await updateProduct({
+        productId: params.id,
+        updatedProduct: productData,
       }).unwrap();
 
-      toast.success(`${result.name} updated successfully`);
-      navigate("/admin/allproductslist");
-    } catch (error) {
-      console.error("Update error:", error);
-      toast.error(error?.data?.message || error?.data?.error || "Failed to update product");
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        toast.success(`Product updated`);
+        navigate("/admin/allproductslist");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Product update failed. Try again");
     }
   };
 
@@ -128,36 +149,71 @@ const AdminProductUpdate = () => {
                     flexDirection: 'column',
                     alignItems: 'center'
                   }}>
-                    {image ? (
-                      <Box sx={{ mb: 4, width: '100%', textAlign: 'center' }}>
-                        <img
-                          src={image}
-                          alt="product"
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '400px',
-                            height: 'auto', 
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </Box>
-                    ) : (
-                      <Box sx={{ 
-                        width: '100%', 
-                        height: '300px',
-                        bgcolor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 4
-                      }}>
-                        <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                          No image uploaded
-                        </Typography>
-                      </Box>
-                    )}
+                    <Box sx={{ 
+                      width: '100%',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                      gap: 2,
+                      mb: 4
+                    }}>
+                      {images.length > 0 ? (
+                        images.map((image, index) => (
+                          <Box 
+                            key={index} 
+                            sx={{ 
+                              position: 'relative',
+                              width: '100%',
+                              paddingTop: '100%',
+                              borderRadius: '8px',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <img
+                              src={image}
+                              alt={`product-${index}`}
+                              style={{ 
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                            <IconButton
+                              onClick={() => removeImage(index)}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                '&:hover': {
+                                  bgcolor: 'rgba(0, 0, 0, 0.7)'
+                                }
+                              }}
+                              size="small"
+                            >
+                              <Delete sx={{ color: 'white', fontSize: 20 }} />
+                            </IconButton>
+                          </Box>
+                        ))
+                      ) : (
+                        <Box sx={{ 
+                          width: '100%',
+                          height: '300px',
+                          bgcolor: 'rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gridColumn: '1 / -1'
+                        }}>
+                          <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                            No images uploaded
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
                     
                     <Button
                       variant="contained"
@@ -168,12 +224,13 @@ const AdminProductUpdate = () => {
                         '&:hover': { bgcolor: 'primary.dark' }
                       }}
                     >
-                      Upload Image
+                      Upload Images
                       <input
                         type="file"
-                        name="image"
+                        name="images"
                         accept="image/*"
                         onChange={uploadFileHandler}
+                        multiple
                         hidden
                       />
                     </Button>

@@ -32,7 +32,7 @@ const upload = multer({
       cb(new Error("Only image files are allowed!"), false);
     }
   }
-}).single("image"); // Changed from "file" to "image" to match frontend
+}).array("image", 5); // Changed to array to handle multiple files, max 5
 
 // Error handling middleware
 const handleUpload = (req, res, next) => {
@@ -49,98 +49,52 @@ const handleUpload = (req, res, next) => {
   });
 };
 
-// Single file upload
+// File upload route - handles both single and multiple files
 router.post("/cloudinary", handleUpload, async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    // Convert buffer to base64
-    const b64 = Buffer.from(req.file.buffer).toString("base64");
-    const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-
-    const result = await cloudinary.uploader.upload(dataURI, {
-      resource_type: "auto",
-      folder: "CAMSHOP",
-      transformation: [{ width: 1000, height: 1000, crop: "limit" }]
-    });
-
-    res.json({
-      image: result.secure_url,
-      public_id: result.public_id
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ 
-      message: "Error uploading to Cloudinary",
-      error: error.message 
-    });
-  }
-});
-
-// Multiple files upload
-const uploadMultiple = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit per file
-  },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpe?g|png|webp/;
-    const mimetypes = /image\/jpe?g|image\/png|image\/webp/;
-
-    const extname = path.extname(file.originalname).toLowerCase();
-    const mimetype = file.mimetype;
-
-    if (filetypes.test(extname) && mimetypes.test(mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed!"), false);
-    }
-  }
-}).array("files", 5);
-
-// Error handling middleware for multiple uploads
-const handleMultipleUpload = (req, res, next) => {
-  uploadMultiple(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: "File size is too large. Maximum size is 5MB per file." });
-      } else if (err.code === 'LIMIT_FILE_COUNT') {
-        return res.status(400).json({ message: "Too many files. Maximum is 5 files." });
-      }
-      return res.status(400).json({ message: err.message });
-    } else if (err) {
-      return res.status(400).json({ message: err.message });
-    }
-    next();
-  });
-};
-
-router.post("/cloudinary/multiple", handleMultipleUpload, async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
+    // Process each file
     const uploadPromises = req.files.map(async (file) => {
+      // Convert buffer to base64
       const b64 = Buffer.from(file.buffer).toString("base64");
       const dataURI = "data:" + file.mimetype + ";base64," + b64;
 
-      const result = await cloudinary.uploader.upload(dataURI, {
+      // Upload to Cloudinary with a timeout
+      const uploadPromise = cloudinary.uploader.upload(dataURI, {
         resource_type: "auto",
         folder: "CAMSHOP",
-        transformation: [{ width: 1000, height: 1000, crop: "limit" }]
+        transformation: [{ width: 1000, height: 1000, crop: "limit" }],
+        timeout: 60000 // 60 second timeout
       });
 
-      return {
-        url: result.secure_url,
-        public_id: result.public_id
-      };
+      try {
+        const result = await Promise.race([
+          uploadPromise,
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Upload timeout')), 60000)
+          )
+        ]);
+
+        return {
+          image: result.secure_url,
+          public_id: result.public_id
+        };
+      } catch (error) {
+        console.error("Individual upload error:", error);
+        throw error;
+      }
     });
 
-    const uploadedFiles = await Promise.all(uploadPromises);
-    res.json(uploadedFiles);
+    // Wait for all uploads to complete
+    const results = await Promise.all(uploadPromises);
+
+    res.json({
+      images: results.map(r => r.image),
+      public_ids: results.map(r => r.public_id)
+    });
   } catch (error) {
     console.error("Upload error:", error);
     res.status(500).json({ 

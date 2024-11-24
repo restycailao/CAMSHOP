@@ -33,12 +33,12 @@ router.route("/new").get(fetchNewProducts);
 // Protected routes
 router
   .route("/")
-  .post(authenticate, authorizeAdmin, formidable(), addProduct);
+  .post(authenticate, authorizeAdmin, addProduct);
 
 router
   .route("/:id")
   .get(checkId, fetchProductById)
-  .put(authenticate, authorizeAdmin, checkId, formidable(), updateProductDetails)
+  .put(authenticate, authorizeAdmin, checkId, updateProductDetails)
   .delete(authenticate, authorizeAdmin, checkId, removeProduct);
 
 // Image management

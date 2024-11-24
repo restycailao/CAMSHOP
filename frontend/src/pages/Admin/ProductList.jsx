@@ -16,7 +16,9 @@ import {
   Typography,
   MenuItem,
   FormControl,
+  IconButton,
 } from "@mui/material";
+import { Delete } from "@mui/icons-material";
 
 const ProductList = () => {
   const [name, setName] = useState("");
@@ -26,7 +28,7 @@ const ProductList = () => {
   const [quantity, setQuantity] = useState("");
   const [brand, setBrand] = useState("");
   const [stock, setStock] = useState(0);
-  const [image, setImage] = useState("");
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
 
   const [createProduct] = useCreateProductMutation();
@@ -37,48 +39,61 @@ const ProductList = () => {
     e.preventDefault();
 
     try {
-      const productData = new FormData();
-      productData.append("image", image);
-      productData.append("name", name);
-      productData.append("description", description);
-      productData.append("price", price);
-      productData.append("category", category);
-      productData.append("quantity", quantity);
-      productData.append("brand", brand);
-      productData.append("countInStock", stock);
+      const productData = {
+        name,
+        description,
+        price: Number(price),
+        category,
+        quantity: Number(quantity),
+        brand,
+        countInStock: Number(stock),
+        images: images
+      };
 
-      const { data } = await createProduct(productData);
-
-      if (data.error) {
-        toast.error("Product create failed. Try again.");
+      const result = await createProduct(productData).unwrap();
+      
+      if (result.error) {
+        toast.error(result.error);
       } else {
-        toast.success(`${data.name} is created`);
+        toast.success(`${result.name} is created`);
         navigate("/admin/allproductslist");
       }
     } catch (err) {
-      console.log(err);
-      toast.error("Product create failed. Try again.");
+      console.error('Product creation error:', err);
+      toast.error(err?.data?.message || "Product creation failed. Try again");
     }
   };
 
   const uploadFileHandler = async (e) => {
+    const files = Array.from(e.target.files);
     const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    
+    files.forEach(file => {
+      formData.append('image', file);
+    });
+
     try {
       const res = await uploadProductImage(formData).unwrap();
       if (res.error) {
-        throw new Error(res.error.message || 'Upload failed');
+        throw new Error(res.error);
       }
-      toast.success(res.message || 'Image uploaded successfully');
-      setImage(res.image);
+      
+      // Handle multiple images response
+      const newImages = Array.isArray(res.images) ? res.images : [res.image];
+      setImages(prev => [...prev, ...newImages]);
+      toast.success('Images uploaded successfully');
     } catch (err) {
       console.error('Upload error:', err);
       if (err.name === 'TimeoutError') {
-        toast.error('Upload timed out. Please try with a smaller image or check your connection.');
+        toast.error('Upload timed out. Please try with smaller images or check your connection.');
       } else {
-        toast.error(err?.data?.message || err.message || 'Failed to upload image');
+        toast.error(err?.data?.message || err.message || 'Failed to upload images');
       }
     }
+  };
+
+  const removeImage = (indexToRemove) => {
+    setImages(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -116,36 +131,71 @@ const ProductList = () => {
                     flexDirection: 'column',
                     alignItems: 'center'
                   }}>
-                    {image ? (
-                      <Box sx={{ mb: 4, width: '100%', textAlign: 'center' }}>
-                        <img
-                          src={image}
-                          alt="product"
-                          style={{ 
-                            width: '100%', 
-                            maxWidth: '400px',
-                            height: 'auto', 
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </Box>
-                    ) : (
-                      <Box sx={{ 
-                        width: '100%', 
-                        height: '300px',
-                        bgcolor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        mb: 4
-                      }}>
-                        <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                          No image uploaded
-                        </Typography>
-                      </Box>
-                    )}
+                    <Box sx={{ 
+                      width: '100%',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                      gap: 2,
+                      mb: 4
+                    }}>
+                      {images.length > 0 ? (
+                        images.map((image, index) => (
+                          <Box 
+                            key={index} 
+                            sx={{ 
+                              position: 'relative',
+                              width: '100%',
+                              paddingTop: '100%',
+                              borderRadius: '8px',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <img
+                              src={image}
+                              alt={`product-${index}`}
+                              style={{ 
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                            <IconButton
+                              onClick={() => removeImage(index)}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                bgcolor: 'rgba(0, 0, 0, 0.5)',
+                                '&:hover': {
+                                  bgcolor: 'rgba(0, 0, 0, 0.7)'
+                                }
+                              }}
+                              size="small"
+                            >
+                              <Delete sx={{ color: 'white', fontSize: 20 }} />
+                            </IconButton>
+                          </Box>
+                        ))
+                      ) : (
+                        <Box sx={{ 
+                          width: '100%',
+                          height: '300px',
+                          bgcolor: 'rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gridColumn: '1 / -1'
+                        }}>
+                          <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                            No images uploaded
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
                     
                     <Button
                       variant="contained"
@@ -156,12 +206,13 @@ const ProductList = () => {
                         '&:hover': { bgcolor: 'primary.dark' }
                       }}
                     >
-                      Upload Image
+                      Upload Images
                       <input
                         type="file"
-                        name="image"
+                        name="images"
                         accept="image/*"
                         onChange={uploadFileHandler}
+                        multiple
                         hidden
                       />
                     </Button>

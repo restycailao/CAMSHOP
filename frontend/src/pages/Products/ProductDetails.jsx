@@ -34,8 +34,16 @@ import {
   Tabs,
   Rating,
   styled,
+  MobileStepper,
 } from "@mui/material";
-import { KeyboardArrowLeft, Add, Remove } from "@mui/icons-material";
+import { 
+  KeyboardArrowLeft, 
+  KeyboardArrowRight,
+  Add, 
+  Remove,
+  NavigateBefore,
+  NavigateNext
+} from "@mui/icons-material";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   backgroundColor: '#1A1A1A',
@@ -137,6 +145,7 @@ const ProductDetails = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [activeTab, setActiveTab] = useState("description");
+  const [activeStep, setActiveStep] = useState(0);
 
   const {
     data: product,
@@ -145,10 +154,21 @@ const ProductDetails = () => {
     error,
   } = useGetProductDetailsQuery(productId);
 
-  const { userInfo } = useSelector((state) => state.auth);
+  // Get all product images (main image + additional images)
+  const allImages = product ? [product.image, ...(product.images || [])] : [];
+  const maxSteps = allImages.length;
 
-  const [createReview, { isLoading: loadingProductReview }] =
-    useCreateReviewMutation();
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => 
+      prevActiveStep === maxSteps - 1 ? 0 : prevActiveStep + 1
+    );
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => 
+      prevActiveStep === 0 ? maxSteps - 1 : prevActiveStep - 1
+    );
+  };
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -188,6 +208,11 @@ const ProductDetails = () => {
     dispatch(addToCart({ ...product, qty }));
     navigate("/cart");
   };
+
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const [createReview, { isLoading: loadingProductReview }] =
+    useCreateReviewMutation();
 
   const tabs = [
     { id: "description", label: "Description" },
@@ -247,20 +272,137 @@ const ProductDetails = () => {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Grid container spacing={3}>
-                  {/* Left Column - Product Image */}
+                  {/* Left Column - Product Image Carousel */}
                   <Grid item xs={12} md={4}>
                     <StyledPaper sx={{ position: 'relative', height: '100%' }}>
-                      <Box 
-                        component="img"
-                        src={product.image}
-                        alt={product.name}
-                        sx={{
-                          width: '100%',
-                          height: 'auto',
-                          borderRadius: 1,
-                          boxShadow: 3
-                        }}
-                      />
+                      <Box sx={{ position: 'relative' }}>
+                        <Box
+                          component="img"
+                          src={allImages[activeStep]}
+                          alt={`Product ${activeStep + 1}`}
+                          sx={{
+                            width: '100%',
+                            height: 'auto',
+                            borderRadius: 1,
+                            display: 'block',
+                            overflow: 'hidden',
+                            aspectRatio: '1',
+                            objectFit: 'cover',
+                          }}
+                        />
+                        
+                        {/* Navigation Arrows */}
+                        <IconButton
+                          sx={{
+                            position: 'absolute',
+                            left: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            bgcolor: 'rgba(0, 0, 0, 0.5)',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'rgba(0, 0, 0, 0.7)',
+                            },
+                          }}
+                          onClick={handleBack}
+                          disabled={maxSteps <= 1}
+                        >
+                          <NavigateBefore />
+                        </IconButton>
+                        
+                        <IconButton
+                          sx={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            bgcolor: 'rgba(0, 0, 0, 0.5)',
+                            color: 'white',
+                            '&:hover': {
+                              bgcolor: 'rgba(0, 0, 0, 0.7)',
+                            },
+                          }}
+                          onClick={handleNext}
+                          disabled={maxSteps <= 1}
+                        >
+                          <NavigateNext />
+                        </IconButton>
+
+                        {/* Image Dots */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: 8,
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: 1,
+                          }}
+                        >
+                          {allImages.map((_, index) => (
+                            <Box
+                              key={index}
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                bgcolor: index === activeStep ? '#ec4899' : 'rgba(255, 255, 255, 0.3)',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => setActiveStep(index)}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+
+                      {/* Thumbnail Preview */}
+                      {maxSteps > 1 && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            gap: 1,
+                            mt: 2,
+                            overflowX: 'auto',
+                            '&::-webkit-scrollbar': {
+                              height: 6,
+                            },
+                            '&::-webkit-scrollbar-track': {
+                              bgcolor: 'rgba(255, 255, 255, 0.1)',
+                              borderRadius: 3,
+                            },
+                            '&::-webkit-scrollbar-thumb': {
+                              bgcolor: 'rgba(255, 255, 255, 0.3)',
+                              borderRadius: 3,
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 255, 255, 0.4)',
+                              },
+                            },
+                          }}
+                        >
+                          {allImages.map((image, index) => (
+                            <Box
+                              key={index}
+                              component="img"
+                              src={image}
+                              alt={`Thumbnail ${index + 1}`}
+                              onClick={() => setActiveStep(index)}
+                              sx={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: 1,
+                                objectFit: 'cover',
+                                cursor: 'pointer',
+                                opacity: index === activeStep ? 1 : 0.6,
+                                transition: 'opacity 0.2s',
+                                '&:hover': {
+                                  opacity: 0.8,
+                                },
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+
                       <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
                         <HeartIcon product={product} />
                       </Box>

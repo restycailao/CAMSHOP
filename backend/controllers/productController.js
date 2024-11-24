@@ -3,7 +3,7 @@ import Product from "../models/productModel.js";
 
 const addProduct = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand } = req.fields;
+    const { name, description, price, category, quantity, brand, images } = req.body;
 
     // Validation
     switch (true) {
@@ -21,7 +21,12 @@ const addProduct = asyncHandler(async (req, res) => {
         return res.json({ error: "Quantity is required" });
     }
 
-    const product = new Product({ ...req.fields });
+    const product = new Product({ 
+      ...req.body,
+      image: images && images.length > 0 ? images[0] : undefined, // Set first image as main image
+      images: images || [] // Ensure images array exists
+    });
+    
     await product.save();
     res.json(product);
   } catch (error) {
@@ -32,7 +37,7 @@ const addProduct = asyncHandler(async (req, res) => {
 
 const updateProductDetails = asyncHandler(async (req, res) => {
   try {
-    const { name, description, price, category, quantity, brand } = req.fields;
+    const { name, description, price, category, quantity, brand, images } = req.body;
 
     // Validation
     switch (true) {
@@ -50,14 +55,22 @@ const updateProductDetails = asyncHandler(async (req, res) => {
         return res.json({ error: "Quantity is required" });
     }
 
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { ...req.fields },
-      { new: true }
-    );
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    // Update the product
+    product.name = name;
+    product.description = description;
+    product.price = price;
+    product.category = category;
+    product.quantity = quantity;
+    product.brand = brand;
+    product.images = images || product.images;
+    product.image = images && images.length > 0 ? images[0] : product.image;
 
     await product.save();
-
     res.json(product);
   } catch (error) {
     console.error(error);

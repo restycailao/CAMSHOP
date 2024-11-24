@@ -201,59 +201,16 @@ const Home = () => {
         ) : error ? (
           <Message variant="error">{error?.data?.message || error.error}</Message>
         ) : (
-          <>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                mb: 4,
-                px: 2
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography 
-                  variant="h5" 
-                  component="h2" 
-                  sx={{ 
-                    fontWeight: 500,
-                    color: colorPalette.text.primary 
-                  }}
-                >
-                  Featured Equipment
-                </Typography>
-                <Typography variant="body2" sx={{ color: colorPalette.text.secondary }}>
-                  {data.products.length} items
-                </Typography>
-              </Box>
-
-              <FormControl sx={{ minWidth: 200 }}>
-                <Select
-                  value={category}
-                  onChange={handleCategoryChange}
-                  displayEmpty
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    backgroundColor: colorPalette.background.paper,
-                    color: colorPalette.text.primary,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: colorPalette.accent
-                    }
-                  }}
-                >
-                  <MenuItem value="">All Categories</MenuItem>
-                  <MenuItem value="cameras">Cameras</MenuItem>
-                  <MenuItem value="lenses">Lenses</MenuItem>
-                  <MenuItem value="accessories">Accessories</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
+          <Container maxWidth="xl">
             <Box sx={{ 
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gridTemplateRows: 'repeat(auto-fit, auto)',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(3, 1fr)',
+                lg: 'repeat(4, 1fr)',
+                xl: 'repeat(5, 1fr)'
+              },
               gap: 3,
               justifyItems: 'center',
               px: 2
@@ -263,7 +220,7 @@ const Home = () => {
                   key={product._id}
                   sx={{
                     width: '100%',
-                    maxWidth: '625px',
+                    maxWidth: '400px',
                     backgroundColor: colorPalette.background.paper,
                     borderRadius: 1,
                     overflow: 'hidden',
@@ -299,76 +256,56 @@ const Home = () => {
                       </Typography>
                     </Box>
 
-                    {/* Description */}
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: colorPalette.text.secondary,
-                        mb: 2,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                    {/* Price and Stock */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6" sx={{ color: '#ff7043' }}>
+                        ${product.price}
+                      </Typography>
+                      <Badge 
+                        badgeContent={product.countInStock > 0 ? 'In Stock' : 'Out of Stock'} 
+                        color={product.countInStock > 0 ? 'success' : 'error'}
+                      />
+                    </Box>
+
+                    {/* Add to Cart Button */}
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={() => addToCartHandler(product)}
+                      disabled={product.countInStock === 0}
+                      sx={{
+                        backgroundColor: '#ff7043',
+                        '&:hover': {
+                          backgroundColor: '#f4511e'
+                        },
+                        '&:disabled': {
+                          backgroundColor: '#666666',
+                          color: '#999999'
+                        }
                       }}
                     >
-                      {product.description}
-                    </Typography>
-
-                    {/* Price and Actions */}
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      mt: 'auto'
-                    }}>
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
-                          color: colorPalette.text.primary,
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        ${product.price.toFixed(2)}
-                      </Typography>
-
-                      <Link
-                        to={`/product/${product._id}`}
-                        style={{ textDecoration: 'none' }}
-                      >
-                        <Button
-                          variant="contained"
-                          sx={{
-                            backgroundColor: '#ff7043',
-                            '&:hover': {
-                              backgroundColor: '#f4511e'
-                            }
-                          }}
-                        >
-                          Details
-                        </Button>
-                      </Link>
-                    </Box>
+                      Add to Cart
+                    </Button>
                   </Box>
                 </Box>
               ))}
             </Box>
-
-            {/* Loading indicator for infinite scroll */}
-            <Box 
-              ref={loadingRef} 
-              sx={{ 
-                height: '50px', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center',
-                mt: 2 
-              }}
-            >
-              {data?.hasMore && <Loader />}
-            </Box>
-          </>
+          </Container>
         )}
+      </Box>
+
+      {/* Loading indicator for infinite scroll */}
+      <Box 
+        ref={loadingRef} 
+        sx={{ 
+          height: '50px', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          mt: 2 
+        }}
+      >
+        {data?.hasMore && <Loader />}
       </Box>
     </>
   );
