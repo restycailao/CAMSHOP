@@ -5,12 +5,38 @@ import {
   useGetTotalSalesByDateQuery,
   useGetTotalSalesQuery,
 } from "../../redux/api/orderApiSlice";
-
 import { useState, useEffect } from "react";
 import AdminMenu from "./AdminMenu";
 import OrderList from "./OrderList";
 import Loader from "../../components/Loader";
 import { FaDollarSign, FaUsers, FaShoppingBag } from 'react-icons/fa';
+import { Box, Container, Grid, Paper, Typography, IconButton, CircularProgress } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#1A1A1A',
+  padding: theme.spacing(3),
+  borderRadius: 12,
+  transition: 'all 0.3s ease-in-out',
+  '&:hover': {
+    boxShadow: '0 0 20px rgba(236, 72, 153, 0.2)',
+  },
+}));
+
+const IconWrapper = styled(Box)(({ theme }) => ({
+  backgroundColor: 'rgba(236, 72, 153, 0.1)',
+  borderRadius: 8,
+  padding: theme.spacing(1.5),
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const GrowthIndicator = styled(Typography)(({ growth }) => ({
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  color: growth >= 0 ? '#10B981' : '#EF4444',
+}));
 
 const AdminDashboard = () => {
   const { data: sales, isLoading } = useGetTotalSalesQuery();
@@ -126,7 +152,6 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (salesDetail && !loadingSales) {
-      // Sort the sales data by date
       const sortedSales = [...salesDetail].sort((a, b) => new Date(a._id) - new Date(b._id));
       
       setState((prevState) => ({
@@ -148,14 +173,12 @@ const AdminDashboard = () => {
     }
   }, [salesDetail, loadingSales]);
 
-  // Calculate growth percentages
   const calculateGrowth = (current, previous) => {
     if (!previous) return 0;
     return ((current - previous) / previous * 100).toFixed(1);
   };
 
-  // Get previous period values (simplified example)
-  const previousSales = sales?.totalSales ? sales.totalSales * 0.9 : 0; // Assuming 90% of current as previous
+  const previousSales = sales?.totalSales ? sales.totalSales * 0.9 : 0;
   const previousCustomers = customers?.length ? customers.length * 0.95 : 0;
   const previousOrders = orders?.totalOrders ? orders.totalOrders * 0.92 : 0;
 
@@ -163,101 +186,85 @@ const AdminDashboard = () => {
   const customersGrowth = calculateGrowth(customers?.length || 0, previousCustomers);
   const ordersGrowth = calculateGrowth(orders?.totalOrders || 0, previousOrders);
 
+  const StatCard = ({ icon: Icon, title, value, growth, isLoading }) => (
+    <StyledPaper elevation={0}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <IconWrapper>
+          <Icon style={{ fontSize: 24, color: '#ec4899' }} />
+        </IconWrapper>
+        <GrowthIndicator growth={growth}>
+          {growth >= 0 ? '+' : ''}{growth}%
+        </GrowthIndicator>
+      </Box>
+      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 0.5 }}>
+        {title}
+      </Typography>
+      <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>
+        {isLoading ? <CircularProgress size={24} /> : value}
+      </Typography>
+    </StyledPaper>
+  );
+
   return (
-    <div className="min-h-screen bg-[#0E0E0E] pt-[70px]">
+    <Box sx={{ minHeight: '100vh', bgcolor: '#0E0E0E', pt: 9, color: '#fff' }}>
       <AdminMenu />
       
-      <div className="max-w-[1600px] mx-auto p-6">
-        {/* Bento Box Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Total Sales Card */}
-          <div className="bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-pink-500/10 p-3 rounded-lg">
-                <FaDollarSign className="text-2xl text-pink-500" />
-              </div>
-              <span className={`text-sm font-medium ${salesGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {salesGrowth >= 0 ? '+' : ''}{salesGrowth}%
-              </span>
-            </div>
-            <h3 className="text-gray-400 text-sm font-medium">Total Sales</h3>
-            <p className="text-white text-2xl font-bold mt-1">
-              {isLoading ? <Loader /> : `$${sales?.totalSales?.toFixed(2)}`}
-            </p>
-          </div>
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              icon={FaDollarSign}
+              title="Total Sales"
+              value={`$${sales?.totalSales?.toFixed(2)}`}
+              growth={salesGrowth}
+              isLoading={isLoading}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              icon={FaUsers}
+              title="Total Customers"
+              value={customers?.length}
+              growth={customersGrowth}
+              isLoading={loading}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <StatCard
+              icon={FaShoppingBag}
+              title="Total Orders"
+              value={orders?.totalOrders}
+              growth={ordersGrowth}
+              isLoading={loadingTwo}
+            />
+          </Grid>
 
-          {/* Customers Card */}
-          <div className="bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-pink-500/10 p-3 rounded-lg">
-                <FaUsers className="text-2xl text-pink-500" />
-              </div>
-              <span className={`text-sm font-medium ${customersGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {customersGrowth >= 0 ? '+' : ''}{customersGrowth}%
-              </span>
-            </div>
-            <h3 className="text-gray-400 text-sm font-medium">Total Customers</h3>
-            <p className="text-white text-2xl font-bold mt-1">
-              {loading ? <Loader /> : customers?.length}
-            </p>
-          </div>
+          <Grid item xs={12}>
+            <StyledPaper elevation={0}>
+              {loadingSales ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
+                  <CircularProgress sx={{ color: '#fff' }} />
+                </Box>
+              ) : (
+                <Chart
+                  options={state.options}
+                  series={state.series}
+                  type="bar"
+                  width="100%"
+                  height={350}
+                />
+              )}
+            </StyledPaper>
+          </Grid>
 
-          {/* Orders Card */}
-          <div className="bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-pink-500/10 p-3 rounded-lg">
-                <FaShoppingBag className="text-2xl text-pink-500" />
-              </div>
-              <span className={`text-sm font-medium ${ordersGrowth >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {ordersGrowth >= 0 ? '+' : ''}{ordersGrowth}%
-              </span>
-            </div>
-            <h3 className="text-gray-400 text-sm font-medium">Total Orders</h3>
-            <p className="text-white text-2xl font-bold mt-1">
-              {loadingTwo ? <Loader /> : orders?.totalOrders}
-            </p>
-          </div>
-        </div>
-
-        {/* Sales Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
-          <div className="lg:col-span-2 bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-            {loadingSales ? (
-              <div className="flex items-center justify-center h-[350px]">
-                <Loader />
-              </div>
-            ) : (
-              <Chart
-                options={state.options}
-                series={state.series}
-                type="bar"
-                width="100%"
-                height={350}
-              />
-            )}
-          </div>
-          
-          {/* Recent Activity */}
-          <div className="bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-            <h3 className="text-white text-lg font-semibold mb-4">Recent Activity</h3>
-            <div className="space-y-4">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="flex items-center gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                  <p className="text-gray-400">New order received</p>
-                  <span className="text-gray-500 text-xs ml-auto">2m ago</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-[#1A1A1A] rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all duration-300">
-          <OrderList />
-        </div>
-      </div>
-    </div>
+          <Grid item xs={12}>
+            <StyledPaper elevation={0} sx={{ color: '#fff' }}>
+              <OrderList />
+            </StyledPaper>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

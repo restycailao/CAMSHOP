@@ -9,16 +9,62 @@ import {
 } from "../../redux/api/usersApiSlice";
 import { toast } from "react-toastify";
 import AdminMenu from "./AdminMenu";
+import {
+  Box,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  IconButton,
+  TextField,
+  styled,
+} from "@mui/material";
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  color: '#fff',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  padding: '16px',
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  '& td': {
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+  },
+}));
+
+const StyledTextField = styled(TextField)({
+  '& .MuiInputBase-root': {
+    color: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '8px',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  '& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  '& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ec4899',
+  },
+});
 
 const UserList = () => {
   const { data: users, refetch, isLoading, error } = useGetUsersQuery();
-
   const [deleteUser] = useDeleteUserMutation();
-
   const [editableUserId, setEditableUserId] = useState(null);
   const [editableUserName, setEditableUserName] = useState("");
   const [editableUserEmail, setEditableUserEmail] = useState("");
-
   const [updateUser] = useUpdateUserMutation();
 
   useEffect(() => {
@@ -30,6 +76,7 @@ const UserList = () => {
       try {
         await deleteUser(id);
         refetch();
+        toast.success("User deleted successfully");
       } catch (err) {
         toast.error(err?.data?.message || err.error);
       }
@@ -51,123 +98,164 @@ const UserList = () => {
       });
       setEditableUserId(null);
       refetch();
+      toast.success("User updated successfully");
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
   };
 
   return (
-    <div className="flex bg-[#0E0E0E] min-h-screen">
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#0E0E0E' }}>
       <AdminMenu />
-      <div className="flex-1 pt-[90px] px-4">
-        <h1 className="text-2xl font-semibold mb-4">Users</h1>
-        {isLoading ? (
-          <Loader />
-        ) : error ? (
-          <Message variant="danger">
-            {error?.data?.message || error.error}
-          </Message>
-        ) : (
-          <div className="flex flex-col md:flex-row">
-            <table className="w-full md:w-4/5 mx-auto">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left">ID</th>
-                  <th className="px-4 py-2 text-left">NAME</th>
-                  <th className="px-4 py-2 text-left">EMAIL</th>
-                  <th className="px-4 py-2 text-left">ADMIN</th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user._id}>
-                    <td className="px-4 py-2">{user._id}</td>
-                    <td className="px-4 py-2">
-                      {editableUserId === user._id ? (
-                        <div className="flex items-center">
-                          <input
-                            type="text"
-                            value={editableUserName}
-                            onChange={(e) => setEditableUserName(e.target.value)}
-                            className="w-full p-2 border rounded-lg"
-                          />
-                          <button
-                            onClick={() => updateHandler(user._id)}
-                            className="ml-2 bg-blue-500 text-white py-2 px-4 rounded-lg"
-                          >
-                            <FaCheck />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          {user.username}{" "}
-                          <button
-                            onClick={() =>
-                              toggleEdit(user._id, user.username, user.email)
-                            }
-                          >
-                            <FaEdit className="ml-[1rem]" />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      {editableUserId === user._id ? (
-                        <div className="flex items-center">
-                          <input
-                            type="text"
-                            value={editableUserEmail}
-                            onChange={(e) => setEditableUserEmail(e.target.value)}
-                            className="w-full p-2 border rounded-lg"
-                          />
-                          <button
-                            onClick={() => updateHandler(user._id)}
-                            className="ml-2 bg-blue-500 text-white py-2 px-4 rounded-lg"
-                          >
-                            <FaCheck />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <a href={`mailto:${user.email}`}>{user.email}</a>{" "}
-                          <button
-                            onClick={() =>
-                              toggleEdit(user._id, user.name, user.email)
-                            }
-                          >
-                            <FaEdit className="ml-[1rem]" />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      {user.isAdmin ? (
-                        <FaCheck style={{ color: "green" }} />
-                      ) : (
-                        <FaTimes style={{ color: "red" }} />
-                      )}
-                    </td>
-                    <td className="px-4 py-2">
-                      {!user.isAdmin && (
-                        <div className="flex">
-                          <button
+      <Box sx={{ flexGrow: 1, pt: 11, px: 3 }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            bgcolor: '#151515',
+            borderRadius: 2,
+            p: 3,
+            mb: 3,
+          }}
+        >
+          <Typography variant="h5" component="h1" sx={{ color: '#fff', mb: 3, fontWeight: 600 }}>
+            Users
+          </Typography>
+
+          {isLoading ? (
+            <Loader />
+          ) : error ? (
+            <Message variant="danger">
+              {error?.data?.message || error.error}
+            </Message>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <StyledTableCell>ID</StyledTableCell>
+                    <StyledTableCell>NAME</StyledTableCell>
+                    <StyledTableCell>EMAIL</StyledTableCell>
+                    <StyledTableCell>ADMIN</StyledTableCell>
+                    <StyledTableCell>ACTIONS</StyledTableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {users.map((user) => (
+                    <StyledTableRow key={user._id}>
+                      <StyledTableCell>
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          {user._id}
+                        </Typography>
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        {editableUserId === user._id ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <StyledTextField
+                              size="small"
+                              value={editableUserName}
+                              onChange={(e) => setEditableUserName(e.target.value)}
+                              fullWidth
+                            />
+                            <IconButton
+                              onClick={() => updateHandler(user._id)}
+                              sx={{ 
+                                color: '#10B981',
+                                '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.1)' }
+                              }}
+                            >
+                              <FaCheck />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Typography>{user.username}</Typography>
+                            <IconButton
+                              onClick={() => toggleEdit(user._id, user.username, user.email)}
+                              size="small"
+                              sx={{ 
+                                color: '#ec4899',
+                                '&:hover': { backgroundColor: 'rgba(236, 72, 153, 0.1)' }
+                              }}
+                            >
+                              <FaEdit />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        {editableUserId === user._id ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <StyledTextField
+                              size="small"
+                              value={editableUserEmail}
+                              onChange={(e) => setEditableUserEmail(e.target.value)}
+                              fullWidth
+                            />
+                            <IconButton
+                              onClick={() => updateHandler(user._id)}
+                              sx={{ 
+                                color: '#10B981',
+                                '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.1)' }
+                              }}
+                            >
+                              <FaCheck />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Typography
+                              component="a"
+                              href={`mailto:${user.email}`}
+                              sx={{ 
+                                color: '#fff',
+                                textDecoration: 'none',
+                                '&:hover': { color: '#ec4899' }
+                              }}
+                            >
+                              {user.email}
+                            </Typography>
+                            <IconButton
+                              onClick={() => toggleEdit(user._id, user.username, user.email)}
+                              size="small"
+                              sx={{ 
+                                color: '#ec4899',
+                                '&:hover': { backgroundColor: 'rgba(236, 72, 153, 0.1)' }
+                              }}
+                            >
+                              <FaEdit />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        {user.isAdmin ? (
+                          <FaCheck style={{ color: "#10B981" }} />
+                        ) : (
+                          <FaTimes style={{ color: "#EF4444" }} />
+                        )}
+                      </StyledTableCell>
+                      <StyledTableCell>
+                        {!user.isAdmin && (
+                          <IconButton
                             onClick={() => deleteHandler(user._id)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                            sx={{ 
+                              color: '#EF4444',
+                              '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' }
+                            }}
                           >
                             <FaTrash />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+                          </IconButton>
+                        )}
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

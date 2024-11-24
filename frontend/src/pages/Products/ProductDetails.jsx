@@ -21,6 +21,112 @@ import moment from "moment";
 import HeartIcon from "./HeartIcon";
 import Ratings from "./Ratings";
 import { addToCart } from "../../redux/features/cart/cartSlice";
+import {
+  Box,
+  Container,
+  Paper,
+  Typography,
+  Button,
+  IconButton,
+  Grid,
+  TextField,
+  Tab,
+  Tabs,
+  Rating,
+  styled,
+} from "@mui/material";
+import { KeyboardArrowLeft, Add, Remove } from "@mui/icons-material";
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#1A1A1A',
+  borderRadius: '0.5rem',
+  padding: '2rem',
+  height: '100%',
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+}));
+
+const StyledTextField = styled(TextField)({
+  '& .MuiInputBase-root': {
+    color: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '0.5rem',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  '& .MuiInputBase-root:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  '& .MuiInputBase-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ec4899',
+  },
+  '& .MuiInputLabel-root': {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#ec4899',
+  },
+});
+
+const StyledTab = styled(Tab)({
+  color: 'white',
+  '&.Mui-selected': {
+    color: 'white',
+    fontWeight: 600,
+  },
+  '&:hover': {
+    color: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+});
+
+const StyledButton = styled(Button)({
+  backgroundColor: '#ec4899',
+  color: '#fff',
+  '&:hover': {
+    backgroundColor: '#be185d',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(236, 72, 153, 0.5)',
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+});
+
+const QuantityButton = styled(IconButton)({
+  color: '#ec4899',
+  backgroundColor: '#fff',
+  borderRadius: '0.5rem',
+  padding: '0.5rem',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  '&.Mui-disabled': {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(236, 72, 153, 0.5)',
+  },
+});
+
+const InfoItem = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  '& .icon': {
+    color: '#ec4899',
+    fontSize: '1.25rem',
+  },
+  '& .label': {
+    color: 'white',
+    opacity: 0.7,
+    fontSize: '0.875rem',
+  },
+  '& .value': {
+    color: 'white',
+    fontSize: '1rem',
+  },
+});
 
 const ProductDetails = () => {
   const { id: productId } = useParams();
@@ -85,155 +191,51 @@ const ProductDetails = () => {
 
   const tabs = [
     { id: "description", label: "Description" },
-    { id: "category", label: "Category Details" },
-    { id: "reviews", label: `Reviews (${product?.reviews?.length || 0})` },
+    { id: "category", label: "Category Details" }
   ];
-
-  const renderStars = () => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            type="button"
-            key={star}
-            onClick={(e) => {
-              e.preventDefault();
-              setRating(star);
-            }}
-            className={`text-2xl ${
-              star <= rating ? "text-yellow-500" : "text-gray-400"
-            } hover:text-yellow-500 transition-colors`}
-          >
-            ★
-          </button>
-        ))}
-        {rating > 0 && (
-          <span className="ml-2 text-white">{rating} out of 5</span>
-        )}
-      </div>
-    );
-  };
 
   const tabContent = {
     description: (
-      <div className="text-[#B0B0B0]">
+      <Typography variant="body1" color="white" sx={{ opacity: 0.7 }}>
         {product?.description}
-      </div>
+      </Typography>
     ),
     category: (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[#B0B0B0]">
-        <p>Category: {product?.category?.name}</p>
-        <p>Camera Type: {product?.category?.cameraType}</p>
-        <p>Sensor Size: {product?.category?.sensorSize}</p>
-        <p>Primary Use: {product?.category?.primaryUseCase}</p>
-      </div>
-    ),
-    reviews: (
-      <div className="space-y-4">
-        {userInfo ? (
-          <form onSubmit={submitHandler} className="space-y-4">
-            <div>
-              <label className="block text-white mb-2">Rating <span className="text-pink-500">*</span></label>
-              {renderStars()}
-              {rating === 0 && (
-                <p className="text-sm text-gray-400 mt-1">Click the stars to rate</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-white mb-2">Review <span className="text-pink-500">*</span></label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows="3"
-                className="w-full p-2 rounded-lg bg-[#252525] text-white border border-gray-600 focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                placeholder="Share your experience with this product..."
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loadingProductReview}
-              className="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingProductReview ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                "Submit Review"
-              )}
-            </button>
-          </form>
-        ) : (
-          <div className="bg-[#252525] p-4 rounded-lg">
-            <p className="text-white mb-2">Please <Link to="/login" className="text-pink-500 hover:underline">sign in</Link> to write a review.</p>
-            <p className="text-sm text-gray-400">Only verified purchasers can review products.</p>
-          </div>
-        )}
-        
-        <div>
-          <h3 className="text-xl font-semibold text-white mb-4">Customer Reviews</h3>
-          {product?.reviews?.length === 0 ? (
-            <p className="text-[#B0B0B0]">No reviews yet. Be the first to review this product!</p>
-          ) : (
-            <div className="space-y-4">
-              {product?.reviews?.map((review) => (
-                <div key={review._id} className="bg-[#252525] p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-white">{review.name}</span>
-                    <span className="text-[#B0B0B0] text-sm">
-                      {moment(review.createdAt).fromNow()}
-                    </span>
-                  </div>
-                  <div className="flex items-center mb-2">
-                    {[...Array(5)].map((_, index) => (
-                      <span key={index} className="text-yellow-500">
-                        {review.rating > index ? (
-                          review.rating - index >= 1 ? (
-                            <FaStar />
-                          ) : (
-                            <FaStarHalfAlt />
-                          )
-                        ) : (
-                          <FaRegStar />
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-[#B0B0B0]">{review.comment}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    ),
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <Typography color="white" sx={{ opacity: 0.7 }}>Category: {product?.category?.name}</Typography>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography color="white" sx={{ opacity: 0.7 }}>Camera Type: {product?.category?.cameraType}</Typography>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography color="white" sx={{ opacity: 0.7 }}>Sensor Size: {product?.category?.sensorSize}</Typography>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Typography color="white" sx={{ opacity: 0.7 }}>Primary Use: {product?.category?.primaryUseCase}</Typography>
+        </Grid>
+      </Grid>
+    )
   };
 
   return (
-    <div className="min-h-screen bg-[#121212]">
-      <div className="container mx-auto px-4">
-        <div className="pt-32 pb-20">
-          <Link
+    <Box sx={{ minHeight: '100vh', bgcolor: '#121212' }}>
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ pt: 8, pb: 5 }}>
+          <Button
+            component={Link}
             to="/"
-            className="text-white font-semibold hover:underline inline-block mb-12"
+            startIcon={<KeyboardArrowLeft />}
+            sx={{ 
+              color: 'white',
+              '&:hover': {
+                textDecoration: 'underline',
+              },
+              mb: 4
+            }}
           >
             Go Back
-          </Link>
+          </Button>
 
           {isLoading ? (
             <Loader />
@@ -242,144 +244,314 @@ const ProductDetails = () => {
               {error?.data?.message || error.message}
             </Message>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-16 mt-12 items-start justify-between">
-              {/* Left Column - Product Image */}
-              <div className="w-full lg:w-[30%]">
-                <div className="relative bg-[#1A1A1A] p-6 rounded-lg shadow-xl h-full">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full rounded-lg shadow-lg"
-                  />
-                  <div className="absolute top-8 right-8">
-                    <HeartIcon product={product} />
-                  </div>
-                </div>
-              </div>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Grid container spacing={3}>
+                  {/* Left Column - Product Image */}
+                  <Grid item xs={12} md={4}>
+                    <StyledPaper sx={{ position: 'relative', height: '100%' }}>
+                      <Box 
+                        component="img"
+                        src={product.image}
+                        alt={product.name}
+                        sx={{
+                          width: '100%',
+                          height: 'auto',
+                          borderRadius: 1,
+                          boxShadow: 3
+                        }}
+                      />
+                      <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+                        <HeartIcon product={product} />
+                      </Box>
+                    </StyledPaper>
+                  </Grid>
 
-              {/* Middle Column - Product Details */}
-              <div className="w-full lg:w-[30%]">
-                <div className="space-y-8 bg-[#1A1A1A] p-8 rounded-lg shadow-xl h-full">
-                  <h2 className="text-3xl font-semibold">{product.name}</h2>
-                  <p className="text-[#B0B0B0] text-lg">{product.description}</p>
-                  <p className="text-5xl font-extrabold text-pink-500">$ {product.price}</p>
+                  {/* Middle Column - Product Details */}
+                  <Grid item xs={12} md={4}>
+                    <StyledPaper sx={{ height: '100%' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, height: '100%' }}>
+                        <Typography variant="h4" component="h2" color="white" gutterBottom>
+                          {product.name}
+                        </Typography>
+                        
+                        <Typography variant="body1" color="white" sx={{ opacity: 0.7 }}>
+                          {product.description}
+                        </Typography>
+                        
+                        <Typography variant="h3" color="primary" fontWeight="bold">
+                          $ {product.price}
+                        </Typography>
 
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <h1 className="flex items-center">
-                        <FaStore className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">Brand</span>
-                          <span className="text-white">{product.brand}</span>
-                        </span>
-                      </h1>
-                      <h1 className="flex items-center">
-                        <FaClock className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">Added</span>
-                          <span className="text-white">{moment(product.createAt).fromNow()}</span>
-                        </span>
-                      </h1>
-                      <h1 className="flex items-center">
-                        <FaStar className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">Reviews</span>
-                          <span className="text-white">{product.numReviews}</span>
-                        </span>
-                      </h1>
-                    </div>
+                        <Grid container spacing={3}>
+                          <Grid item xs={6}>
+                            <InfoItem>
+                              <FaStore className="icon" />
+                              <Box>
+                                <Typography className="label" color="white" sx={{ opacity: 0.7 }}>Brand</Typography>
+                                <Typography className="value" color="white">{product.brand}</Typography>
+                              </Box>
+                            </InfoItem>
+                          </Grid>
+                          
+                          <Grid item xs={6}>
+                            <InfoItem>
+                              <FaClock className="icon" />
+                              <Box>
+                                <Typography className="label" color="white" sx={{ opacity: 0.7 }}>Added</Typography>
+                                <Typography className="value" color="white">{moment(product.createAt).fromNow()}</Typography>
+                              </Box>
+                            </InfoItem>
+                          </Grid>
+                          
+                          <Grid item xs={6}>
+                            <InfoItem>
+                              <FaStar className="icon" />
+                              <Box>
+                                <Typography className="label" color="white" sx={{ opacity: 0.7 }}>Reviews</Typography>
+                                <Typography className="value" color="white">{product.numReviews}</Typography>
+                              </Box>
+                            </InfoItem>
+                          </Grid>
+                          
+                          <Grid item xs={6}>
+                            <InfoItem>
+                              <FaBox className="icon" />
+                              <Box>
+                                <Typography className="label" color="white" sx={{ opacity: 0.7 }}>In Stock</Typography>
+                                <Typography className="value" color="white">{product.countInStock}</Typography>
+                              </Box>
+                            </InfoItem>
+                          </Grid>
+                        </Grid>
 
-                    <div className="space-y-6">
-                      <h1 className="flex items-center">
-                        <FaStar className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">Rating</span>
-                          <span className="text-white">{rating}</span>
-                        </span>
-                      </h1>
-                      <h1 className="flex items-center">
-                        <FaShoppingCart className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">Quantity</span>
-                          <span className="text-white">{product.quantity}</span>
-                        </span>
-                      </h1>
-                      <h1 className="flex items-center">
-                        <FaBox className="mr-3 text-pink-500 text-xl" /> 
-                        <span>
-                          <span className="text-[#B0B0B0] block text-sm">In Stock</span>
-                          <span className="text-white">{product.countInStock}</span>
-                        </span>
-                      </h1>
-                    </div>
-                  </div>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          borderTop: 1,
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          pt: 3,
+                          mt: 'auto'
+                        }}>
+                          <Box sx={{ color: 'white' }}>
+                            <Ratings
+                              value={product.rating}
+                              text={`${product.numReviews} reviews`}
+                            />
+                          </Box>
 
-                  <div className="flex items-center justify-between border-t border-gray-700 pt-8">
-                    <Ratings
-                      value={product.rating}
-                      text={`${product.numReviews} reviews`}
-                    />
+                          {product.countInStock > 0 && (
+                            <Box sx={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              bgcolor: 'white',
+                              borderRadius: 1,
+                              border: 2,
+                              borderColor: 'primary.main'
+                            }}>
+                              <QuantityButton
+                                onClick={() => setQty(Math.max(1, qty - 1))}
+                              >
+                                <Remove />
+                              </QuantityButton>
+                              <Typography 
+                                sx={{ 
+                                  px: 2,
+                                  color: 'black',
+                                  fontWeight: 600,
+                                  minWidth: '3rem',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                {qty}
+                              </Typography>
+                              <QuantityButton
+                                onClick={() => setQty(Math.min(product.countInStock, qty + 1))}
+                              >
+                                <Add />
+                              </QuantityButton>
+                            </Box>
+                          )}
+                        </Box>
 
-                    {product.countInStock > 0 && (
-                      <div className="flex items-center bg-white rounded-lg border-2 border-pink-500">
-                        <button 
-                          onClick={() => setQty(Math.max(1, qty - 1))}
-                          className="px-4 py-2 text-pink-500 hover:bg-pink-50 rounded-l-lg transition-colors text-xl font-bold"
+                        <StyledButton
+                          onClick={addToCartHandler}
+                          disabled={product.countInStock === 0}
+                          size="large"
+                          sx={{ py: 1.5 }}
                         >
-                          -
-                        </button>
-                        <span className="px-4 py-2 text-black font-semibold min-w-[3rem] text-center">
-                          {qty}
-                        </span>
-                        <button 
-                          onClick={() => setQty(Math.min(product.countInStock, qty + 1))}
-                          className="px-4 py-2 text-pink-500 hover:bg-pink-50 rounded-r-lg transition-colors text-xl font-bold"
+                          Add To Cart
+                        </StyledButton>
+                      </Box>
+                    </StyledPaper>
+                  </Grid>
+
+                  {/* Right Column - Tabs */}
+                  <Grid item xs={12} md={4}>
+                    <StyledPaper sx={{ height: '100%' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        <Tabs
+                          value={activeTab}
+                          onChange={(e, newValue) => setActiveTab(newValue)}
+                          orientation="horizontal"
+                          variant="fullWidth"
+                          sx={{
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            '& .MuiTabs-indicator': {
+                              backgroundColor: '#ec4899',
+                            },
+                          }}
                         >
-                          +
-                        </button>
-                      </div>
+                          {tabs.map((tab) => (
+                            <StyledTab
+                              key={tab.id}
+                              label={tab.label}
+                              value={tab.id}
+                              sx={{ 
+                                color: 'white',
+                                opacity: 0.7,
+                                '&.Mui-selected': {
+                                  color: 'white',
+                                  opacity: 1
+                                }
+                              }}
+                            />
+                          ))}
+                        </Tabs>
+                        <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+                          {tabContent[activeTab]}
+                        </Box>
+                      </Box>
+                    </StyledPaper>
+                  </Grid>
+                </Grid>
+              </Grid>
+
+              {/* Reviews Section */}
+              <Grid item xs={12}>
+                <StyledPaper>
+                  <Typography variant="h5" color="white" gutterBottom>
+                    Customer Reviews
+                  </Typography>
+                  {userInfo ? (
+                    <Box component="form" onSubmit={submitHandler} sx={{ mt: 3 }}>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle1" color="white" gutterBottom>
+                            Rating <Typography component="span" color="primary">*</Typography>
+                          </Typography>
+                          <Rating
+                            value={rating}
+                            onChange={(e, newValue) => setRating(newValue)}
+                            size="large"
+                            sx={{
+                              '& .MuiRating-icon': {
+                                color: 'white',
+                                opacity: 0.3
+                              },
+                              '& .MuiRating-iconEmpty': {
+                                color: 'white',
+                                opacity: 0.3
+                              },
+                              '& .MuiRating-iconFilled': {
+                                color: 'white',
+                                opacity: 1
+                              },
+                              '& .MuiRating-iconHover': {
+                                color: 'white',
+                                opacity: 0.7
+                              }
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <StyledTextField
+                            label="Review"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            multiline
+                            rows={3}
+                            required
+                            fullWidth
+                            placeholder="Share your experience with this product..."
+                            InputLabelProps={{
+                              sx: { color: 'white' }
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12}>
+                          <StyledButton
+                            type="submit"
+                            disabled={loadingProductReview}
+                            fullWidth
+                            size="large"
+                          >
+                            {loadingProductReview ? "Submitting..." : "Submit Review"}
+                          </StyledButton>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  ) : (
+                    <Typography color="white" sx={{ opacity: 0.7 }}>
+                      Please <Link to="/login" style={{ color: '#ec4899', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>sign in</Link> to write a review.
+                    </Typography>
+                  )}
+
+                  <Box sx={{ mt: 4 }}>
+                    {product?.reviews?.length === 0 ? (
+                      <Typography color="white" sx={{ opacity: 0.7 }}>
+                        No reviews yet. Be the first to review this product!
+                      </Typography>
+                    ) : (
+                      <Grid container spacing={3}>
+                        {product?.reviews?.map((review) => (
+                          <Grid item xs={12} md={6} key={review._id}>
+                            <StyledPaper sx={{ height: '100%' }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="subtitle1" color="white">
+                                  {review.name}
+                                </Typography>
+                                <Typography variant="caption" color="white" sx={{ opacity: 0.7 }}>
+                                  {moment(review.createdAt).fromNow()}
+                                </Typography>
+                              </Box>
+                              <Rating 
+                                value={review.rating} 
+                                readOnly 
+                                size="small"
+                                sx={{
+                                  '& .MuiRating-icon': {
+                                    color: 'white',
+                                    opacity: 0.3
+                                  },
+                                  '& .MuiRating-iconEmpty': {
+                                    color: 'white',
+                                    opacity: 0.3
+                                  },
+                                  '& .MuiRating-iconFilled': {
+                                    color: 'white',
+                                    opacity: 1
+                                  }
+                                }}
+                              />
+                              <Typography color="white" sx={{ mt: 1, opacity: 0.7 }}>
+                                {review.comment}
+                              </Typography>
+                            </StyledPaper>
+                          </Grid>
+                        ))}
+                      </Grid>
                     )}
-                  </div>
-
-                  <button
-                    onClick={addToCartHandler}
-                    disabled={product.countInStock === 0}
-                    className="w-full bg-pink-600 text-white py-4 px-8 rounded-lg hover:bg-pink-700 transition-colors text-lg font-semibold shadow-lg"
-                  >
-                    Add To Cart
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Column - Tabs */}
-              <div className="w-full lg:w-[30%]">
-                <div className="bg-[#1A1A1A] rounded-lg overflow-hidden shadow-xl h-full">
-                  <div className="flex flex-col border-b border-gray-700">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-8 py-5 text-left transition-colors relative hover:bg-[#252525] ${
-                          activeTab === tab.id
-                            ? "text-white font-semibold border-l-4 border-pink-500 bg-[#252525]"
-                            : "text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  <div className="p-8">
-                    {tabContent[activeTab]}
-                  </div>
-                </div>
-              </div>
-            </div>
+                  </Box>
+                </StyledPaper>
+              </Grid>
+            </Grid>
           )}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 

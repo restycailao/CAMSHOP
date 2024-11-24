@@ -1,83 +1,124 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
-import { Link } from "react-router-dom";
 import { useGetMyOrdersQuery } from "../../redux/api/orderApiSlice";
+import { Link } from "react-router-dom";
+import moment from "moment";
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Button,
+  styled,
+} from "@mui/material";
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  backgroundColor: '#1A1A1A',
+  borderRadius: theme.spacing(1),
+}));
+
+const StyledTableCell = styled(TableCell)({
+  color: 'white',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+});
+
+const StyledHeaderCell = styled(TableCell)({
+  color: 'white',
+  fontWeight: 'bold',
+  borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+});
 
 const UserOrder = () => {
   const { data: orders, isLoading, error } = useGetMyOrdersQuery();
 
   return (
-    <div className="container mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">My Orders </h2>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#121212', py: 8 }}>
+      <Container maxWidth="lg">
+        <Box sx={{ pt: 4 }}>
+          <Typography variant="h4" color="white" gutterBottom align="center">
+            My Orders
+          </Typography>
 
-      {isLoading ? (
-        <Loader />
-      ) : error ? (
-        <Message variant="danger">{error?.data?.error || error.error}</Message>
-      ) : (
-        <table className="w-full">
-          <thead>
-            <tr>
-              <td className="py-2">IMAGE</td>
-              <td className="py-2">ID</td>
-              <td className="py-2">DATE</td>
-              <td className="py-2">TOTAL</td>
-              <td className="py-2">PAID</td>
-              <td className="py-2">DELIVERED</td>
-              <td className="py-2"></td>
-            </tr>
-          </thead>
-
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order._id}>
-                <img
-                  src={order.orderItems[0].image}
-                  alt={order.user}
-                  className="w-[6rem] mb-5"
-                />
-
-                <td className="py-2">{order._id}</td>
-                <td className="py-2">{order.createdAt.substring(0, 10)}</td>
-                <td className="py-2">$ {order.totalPrice}</td>
-
-                <td className="py-2">
-                  {order.isPaid ? (
-                    <p className="p-1 text-center bg-green-400 w-[6rem] rounded-full">
-                      Completed
-                    </p>
-                  ) : (
-                    <p className="p-1 text-center bg-red-400 w-[6rem] rounded-full">
-                      Pending
-                    </p>
-                  )}
-                </td>
-
-                <td className="px-2 py-2">
-                  {order.isDelivered ? (
-                    <p className="p-1 text-center bg-green-400 w-[6rem] rounded-full">
-                      Completed
-                    </p>
-                  ) : (
-                    <p className="p-1 text-center bg-red-400 w-[6rem] rounded-full">
-                      Pending
-                    </p>
-                  )}
-                </td>
-
-                <td className="px-2 py-2">
-                  <Link to={`/order/${order._id}`}>
-                    <button className="bg-pink-400 text-back py-2 px-3 rounded">
-                      View Details
-                    </button>
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+          {isLoading ? (
+            <Loader />
+          ) : error ? (
+            <Message variant="error">{error?.data?.message || error.error}</Message>
+          ) : (
+            <Box sx={{ mt: 4 }}>
+              <StyledPaper>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <StyledHeaderCell>ID</StyledHeaderCell>
+                        <StyledHeaderCell>DATE</StyledHeaderCell>
+                        <StyledHeaderCell>TOTAL</StyledHeaderCell>
+                        <StyledHeaderCell>PAID</StyledHeaderCell>
+                        <StyledHeaderCell>DELIVERED</StyledHeaderCell>
+                        <StyledHeaderCell align="right">ACTIONS</StyledHeaderCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order._id} hover sx={{ '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.05)' } }}>
+                          <StyledTableCell>{order._id}</StyledTableCell>
+                          <StyledTableCell>
+                            {moment(order.createdAt).format('MM/DD/YYYY')}
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            ${order.totalPrice}
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            {order.isPaid ? (
+                              moment(order.paidAt).format('MM/DD/YYYY')
+                            ) : (
+                              <Typography color="error.main">Not Paid</Typography>
+                            )}
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            {order.isDelivered ? (
+                              moment(order.deliveredAt).format('MM/DD/YYYY')
+                            ) : (
+                              <Typography color="error.main">Not Delivered</Typography>
+                            )}
+                          </StyledTableCell>
+                          <StyledTableCell align="right">
+                            <Link to={`/order/${order._id}`}>
+                              <Button
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  bgcolor: '#ec4899',
+                                  color: 'white',
+                                  '&:hover': {
+                                    bgcolor: '#be185d',
+                                  },
+                                }}
+                              >
+                                View Details
+                              </Button>
+                            </Link>
+                          </StyledTableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </StyledPaper>
+            </Box>
+          )}
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
