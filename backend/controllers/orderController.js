@@ -1,5 +1,7 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
+import sendEmail from "../utils/sendEmail.js";
+import { generateOrderDeliveredEmail } from "../utils/emailTemplates.js";
 
 // Utility Function
 function calcPrices(orderItems) {
@@ -184,13 +186,26 @@ const markOrderAsPaid = async (req, res) => {
 
 const markOrderAsDelivered = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("user", "name email");
 
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
 
       const updatedOrder = await order.save();
+
+      // Send delivery confirmation email
+      try {
+        await sendEmail({
+          email: order.user.email,
+          subject: "Order Delivered - CAMSHOP",
+          html: generateOrderDeliveredEmail(order),
+        });
+      } catch (emailError) {
+        console.error("Failed to send delivery email:", emailError);
+        // Don't throw the error as the order is already marked as delivered
+      }
+
       res.json(updatedOrder);
     } else {
       res.status(404);
