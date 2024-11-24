@@ -20,6 +20,7 @@ import {
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
 import checkId from "../middlewares/checkId.js";
 import verifyPurchase from "../middlewares/verifyPurchase.js";
+import filterBadWords from "../middlewares/filterBadWords.js";
 
 router
   .route("/")
@@ -29,7 +30,7 @@ router
 router.route("/allproducts").get(fetchAllProducts);
 
 // Review routes
-router.route("/:id/reviews").post(authenticate, checkId, verifyPurchase, addProductReview);
+router.route("/:id/reviews").post(authenticate, checkId, verifyPurchase, filterBadWords, addProductReview);
 router.route("/reviews").get(authenticate, authorizeAdmin, getAllReviews);
 router.route("/:id/reviews/:reviewId").delete(authenticate, authorizeAdmin, deleteReview);
 
