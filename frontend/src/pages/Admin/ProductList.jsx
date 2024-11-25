@@ -71,7 +71,7 @@ const ProductList = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: "#121212", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: "#121212", minHeight: "100vh", color: "white" }}>
       <Grid container>
         <Grid item xs={12} md={2}>
           <AdminMenu />
@@ -248,9 +248,18 @@ const ProductList = () => {
                           <Field
                             component={TextField}
                             name="name"
-                            label="Name"
+                            label="Product Name"
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
@@ -260,9 +269,18 @@ const ProductList = () => {
                             name="description"
                             label="Description"
                             fullWidth
-                            variant="outlined"
                             multiline
                             rows={4}
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
@@ -273,22 +291,45 @@ const ProductList = () => {
                             label="Price"
                             type="number"
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                           <Field
                             component={TextField}
+                            select
                             name="category"
                             label="Category"
-                            select
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                              "& .MuiSelect-icon": { color: "white" },
+                            }}
                           >
-                            {categories?.map((cat) => (
-                              <MenuItem key={cat._id} value={cat._id}>
-                                {cat.name}
+                            {categories?.map((category) => (
+                              <MenuItem
+                                key={category._id}
+                                value={category._id}
+                                sx={{ color: "black" }}
+                              >
+                                {category.name}
                               </MenuItem>
                             ))}
                           </Field>
@@ -301,7 +342,16 @@ const ProductList = () => {
                             label="Quantity"
                             type="number"
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
@@ -311,7 +361,16 @@ const ProductList = () => {
                             name="brand"
                             label="Brand"
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
@@ -322,7 +381,16 @@ const ProductList = () => {
                             label="Stock"
                             type="number"
                             fullWidth
-                            variant="outlined"
+                            required
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 

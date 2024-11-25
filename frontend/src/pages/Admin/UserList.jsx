@@ -62,41 +62,47 @@ const StyledTextField = styled(TextField)({
 const UserList = () => {
   const { data: users, refetch, isLoading, error } = useGetUsersQuery();
   const [deleteUser] = useDeleteUserMutation();
-  const [editableUserId, setEditableUserId] = useState(null);
-  const [editableUserName, setEditableUserName] = useState("");
-  const [editableUserEmail, setEditableUserEmail] = useState("");
   const [updateUser] = useUpdateUserMutation();
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const [editMode, setEditMode] = useState({});
+  const [editValues, setEditValues] = useState({});
 
   const deleteHandler = async (id) => {
-    if (window.confirm("Are you sure")) {
+    if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await deleteUser(id);
         refetch();
-        toast.success("User deleted successfully");
       } catch (err) {
         toast.error(err?.data?.message || err.error);
       }
     }
   };
 
-  const toggleEdit = (id, username, email) => {
-    setEditableUserId(id);
-    setEditableUserName(username);
-    setEditableUserEmail(email);
+  const toggleEdit = (userId) => {
+    setEditMode((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+    if (!editMode[userId]) {
+      const user = users.find((u) => u._id === userId);
+      setEditValues((prev) => ({
+        ...prev,
+        [userId]: {
+          name: user.username,
+          email: user.email,
+        },
+      }));
+    }
   };
 
-  const updateHandler = async (id) => {
+  const handleUpdate = async (userId) => {
     try {
       await updateUser({
-        userId: id,
-        username: editableUserName,
-        email: editableUserEmail,
+        userId,
+        username: editValues[userId].name,
+        email: editValues[userId].email,
       });
-      setEditableUserId(null);
+      setEditMode((prev) => ({ ...prev, [userId]: false }));
       refetch();
       toast.success("User updated successfully");
     } catch (err) {
@@ -105,155 +111,108 @@ const UserList = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#0E0E0E' }}>
+    <Box className="flex min-h-screen bg-[#0E0E0E]">
       <AdminMenu />
-      <Box sx={{ flexGrow: 1, pt: 11, px: 3 }}>
-        <Paper 
-          elevation={0}
-          sx={{ 
-            bgcolor: '#151515',
-            borderRadius: 2,
-            p: 3,
-            mb: 3,
-          }}
-        >
-          <Typography variant="h5" component="h1" sx={{ color: '#fff', mb: 3, fontWeight: 600 }}>
-            Users
-          </Typography>
+      <Box sx={{ flexGrow: 1, p: 4, pt: 12 }}>
+        <Typography variant="h4" sx={{ mb: 4, color: 'white' }}>
+          Users
+        </Typography>
 
-          {isLoading ? (
-            <Loader />
-          ) : error ? (
-            <Message variant="danger">
-              {error?.data?.message || error.error}
-            </Message>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>ID</StyledTableCell>
-                    <StyledTableCell>NAME</StyledTableCell>
-                    <StyledTableCell>EMAIL</StyledTableCell>
-                    <StyledTableCell>ADMIN</StyledTableCell>
-                    <StyledTableCell>ACTIONS</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {users.map((user) => (
-                    <StyledTableRow key={user._id}>
-                      <StyledTableCell>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          {user._id}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        {editableUserId === user._id ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <StyledTextField
-                              size="small"
-                              value={editableUserName}
-                              onChange={(e) => setEditableUserName(e.target.value)}
-                              fullWidth
-                            />
-                            <IconButton
-                              onClick={() => updateHandler(user._id)}
-                              sx={{ 
-                                color: '#10B981',
-                                '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.1)' }
-                              }}
-                            >
-                              <FaCheck />
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography>{user.username}</Typography>
-                            <IconButton
-                              onClick={() => toggleEdit(user._id, user.username, user.email)}
-                              size="small"
-                              sx={{ 
-                                color: '#ec4899',
-                                '&:hover': { backgroundColor: 'rgba(236, 72, 153, 0.1)' }
-                              }}
-                            >
-                              <FaEdit />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        {editableUserId === user._id ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <StyledTextField
-                              size="small"
-                              value={editableUserEmail}
-                              onChange={(e) => setEditableUserEmail(e.target.value)}
-                              fullWidth
-                            />
-                            <IconButton
-                              onClick={() => updateHandler(user._id)}
-                              sx={{ 
-                                color: '#10B981',
-                                '&:hover': { backgroundColor: 'rgba(16, 185, 129, 0.1)' }
-                              }}
-                            >
-                              <FaCheck />
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography
-                              component="a"
-                              href={`mailto:${user.email}`}
-                              sx={{ 
-                                color: '#fff',
-                                textDecoration: 'none',
-                                '&:hover': { color: '#ec4899' }
-                              }}
-                            >
-                              {user.email}
-                            </Typography>
-                            <IconButton
-                              onClick={() => toggleEdit(user._id, user.username, user.email)}
-                              size="small"
-                              sx={{ 
-                                color: '#ec4899',
-                                '&:hover': { backgroundColor: 'rgba(236, 72, 153, 0.1)' }
-                              }}
-                            >
-                              <FaEdit />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        {user.isAdmin ? (
-                          <FaCheck style={{ color: "#10B981" }} />
-                        ) : (
-                          <FaTimes style={{ color: "#EF4444" }} />
-                        )}
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        {!user.isAdmin && (
+        {isLoading ? (
+          <Loader />
+        ) : error ? (
+          <Message variant="error">
+            {error?.data?.message || error.error}
+          </Message>
+        ) : (
+          <TableContainer component={Paper} sx={{ backgroundColor: '#1a1a1a', borderRadius: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell>ID</StyledTableCell>
+                  <StyledTableCell>NAME</StyledTableCell>
+                  <StyledTableCell>EMAIL</StyledTableCell>
+                  <StyledTableCell>ADMIN</StyledTableCell>
+                  <StyledTableCell>ACTIONS</StyledTableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users?.map((user) => (
+                  <StyledTableRow key={user._id}>
+                    <StyledTableCell>{user._id}</StyledTableCell>
+                    <StyledTableCell>
+                      {editMode[user._id] ? (
+                        <StyledTextField
+                          value={editValues[user._id]?.name || ""}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              [user._id]: {
+                                ...prev[user._id],
+                                name: e.target.value,
+                              },
+                            }))
+                          }
+                          size="small"
+                        />
+                      ) : (
+                        user.username
+                      )}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {editMode[user._id] ? (
+                        <StyledTextField
+                          value={editValues[user._id]?.email || ""}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              [user._id]: {
+                                ...prev[user._id],
+                                email: e.target.value,
+                              },
+                            }))
+                          }
+                          size="small"
+                        />
+                      ) : (
+                        user.email
+                      )}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {user.isAdmin ? (
+                        <FaCheck style={{ color: "green" }} />
+                      ) : (
+                        <FaTimes style={{ color: "red" }} />
+                      )}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {!user.isAdmin && (
+                        <>
+                          <IconButton
+                            onClick={() =>
+                              editMode[user._id]
+                                ? handleUpdate(user._id)
+                                : toggleEdit(user._id)
+                            }
+                            sx={{ color: "white" }}
+                          >
+                            <FaEdit />
+                          </IconButton>
                           <IconButton
                             onClick={() => deleteHandler(user._id)}
-                            sx={{ 
-                              color: '#EF4444',
-                              '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' }
-                            }}
+                            sx={{ color: "#ef4444" }}
                           >
                             <FaTrash />
                           </IconButton>
-                        )}
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
+                        </>
+                      )}
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Box>
     </Box>
   );

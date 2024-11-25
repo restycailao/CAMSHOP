@@ -1,6 +1,26 @@
 import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
+const StyledTextField = styled(TextField)({
+  '& .MuiInputBase-input': {
+    color: 'white',
+  },
+  '& .MuiInputLabel-root': {
+    color: 'white',
+  },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: 'rgba(255, 255, 255, 0.23)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'white',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: 'white',
+    },
+  },
+});
+
 const StyledSelect = styled(Select)({
   color: 'white',
   '.MuiSelect-icon': {
@@ -65,168 +85,104 @@ const CategoryForm = ({
   buttonText = "Submit",
   handleDelete,
 }) => {
+  const cameraTypes = ["DSLR", "Mirrorless", "Point & Shoot", "Action Camera", "Film Camera"];
+  const sensorSizes = ["Full Frame", "APS-C", "Micro 4/3", "1-inch", "Other"];
+  const useCases = ["Professional", "Amateur", "Beginner", "Specialty"];
+
   return (
-    <Box component="div" sx={{ p: 3, bgcolor: '#0E0E0E', borderRadius: 2 }}>
-      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <TextField
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        width: '100%',
+        maxWidth: 600,
+        margin: '0 auto',
+        padding: 3,
+        backgroundColor: '#1a1a1a',
+        borderRadius: 2,
+      }}
+    >
+      <StyledTextField
+        label="Category Name"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        fullWidth
+        required
+      />
+
+      <StyledFormControl fullWidth required>
+        <InputLabel>Camera Type</InputLabel>
+        <StyledSelect
+          value={cameraType}
+          onChange={(e) => setCameraType(e.target.value)}
+          label="Camera Type"
+        >
+          {cameraTypes.map((type) => (
+            <StyledMenuItem key={type} value={type}>
+              {type}
+            </StyledMenuItem>
+          ))}
+        </StyledSelect>
+      </StyledFormControl>
+
+      <StyledFormControl fullWidth required>
+        <InputLabel>Sensor Size</InputLabel>
+        <StyledSelect
+          value={sensorSize}
+          onChange={(e) => setSensorSize(e.target.value)}
+          label="Sensor Size"
+        >
+          {sensorSizes.map((size) => (
+            <StyledMenuItem key={size} value={size}>
+              {size}
+            </StyledMenuItem>
+          ))}
+        </StyledSelect>
+      </StyledFormControl>
+
+      <StyledFormControl fullWidth required>
+        <InputLabel>Primary Use Case</InputLabel>
+        <StyledSelect
+          value={primaryUseCase}
+          onChange={(e) => setPrimaryUseCase(e.target.value)}
+          label="Primary Use Case"
+        >
+          {useCases.map((useCase) => (
+            <StyledMenuItem key={useCase} value={useCase}>
+              {useCase}
+            </StyledMenuItem>
+          ))}
+        </StyledSelect>
+      </StyledFormControl>
+
+      <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+        <Button
+          type="submit"
+          variant="contained"
           fullWidth
-          label="Category Name"
-          placeholder="Write category name"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          variant="outlined"
           sx={{
-            '& .MuiInputLabel-root': {
-              color: 'white',
-            },
-            '& .MuiOutlinedInput-root': {
-              color: 'white',
-              '& fieldset': {
-                borderColor: 'rgba(255, 255, 255, 0.23)',
-              },
-              '&:hover fieldset': {
-                borderColor: 'white',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: 'white',
-              },
+            bgcolor: 'primary.main',
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'primary.dark',
             },
           }}
-        />
-
-        <StyledFormControl fullWidth>
-          <InputLabel>Camera Type</InputLabel>
-          <StyledSelect
-            value={cameraType}
-            label="Camera Type"
-            onChange={(e) => setCameraType(e.target.value)}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  bgcolor: '#1a1a1a',
-                  '& .MuiMenuItem-root': {
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.08)',
-                    },
-                    '&.Mui-selected': {
-                      bgcolor: 'rgba(255, 255, 255, 0.16)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.24)',
-                      },
-                    },
-                  },
-                },
-              },
-            }}
-          >
-            <StyledMenuItem value="">Select Camera Type</StyledMenuItem>
-            <StyledMenuItem value="DSLR (Digital Single-Lens Reflex) Cameras">DSLR (Digital Single-Lens Reflex) Cameras</StyledMenuItem>
-            <StyledMenuItem value="Compact/Point-and-Shoot Cameras">Compact/Point-and-Shoot Cameras</StyledMenuItem>
-            <StyledMenuItem value="Action Cameras">Action Cameras</StyledMenuItem>
-            <StyledMenuItem value="360-Degree Cameras">360-Degree Cameras</StyledMenuItem>
-            <StyledMenuItem value="Instant Cameras">Instant Cameras</StyledMenuItem>
-          </StyledSelect>
-        </StyledFormControl>
-
-        <StyledFormControl fullWidth>
-          <InputLabel>Sensor Size</InputLabel>
-          <StyledSelect
-            value={sensorSize}
-            label="Sensor Size"
-            onChange={(e) => setSensorSize(e.target.value)}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  bgcolor: '#1a1a1a',
-                  '& .MuiMenuItem-root': {
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.08)',
-                    },
-                    '&.Mui-selected': {
-                      bgcolor: 'rgba(255, 255, 255, 0.16)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.24)',
-                      },
-                    },
-                  },
-                },
-              },
-            }}
-          >
-            <StyledMenuItem value="">Select Sensor Size</StyledMenuItem>
-            <StyledMenuItem value="Full-Frame Cameras">Full-Frame Cameras</StyledMenuItem>
-            <StyledMenuItem value="APS-C Cameras">APS-C Cameras</StyledMenuItem>
-            <StyledMenuItem value="Micro Four Thirds Cameras">Micro Four Thirds Cameras</StyledMenuItem>
-            <StyledMenuItem value="Medium Format Cameras">Medium Format Cameras</StyledMenuItem>
-          </StyledSelect>
-        </StyledFormControl>
-
-        <StyledFormControl fullWidth>
-          <InputLabel>Primary Use Case</InputLabel>
-          <StyledSelect
-            value={primaryUseCase}
-            label="Primary Use Case"
-            onChange={(e) => setPrimaryUseCase(e.target.value)}
-            MenuProps={{
-              PaperProps: {
-                sx: {
-                  bgcolor: '#1a1a1a',
-                  '& .MuiMenuItem-root': {
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.08)',
-                    },
-                    '&.Mui-selected': {
-                      bgcolor: 'rgba(255, 255, 255, 0.16)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.24)',
-                      },
-                    },
-                  },
-                },
-              },
-            }}
-          >
-            <StyledMenuItem value="">Select Primary Use Case</StyledMenuItem>
-            <StyledMenuItem value="Photography">Photography</StyledMenuItem>
-            <StyledMenuItem value="Videography">Videography</StyledMenuItem>
-            <StyledMenuItem value="Vlogging Cameras">Vlogging Cameras</StyledMenuItem>
-            <StyledMenuItem value="Professional Cameras">Professional Cameras</StyledMenuItem>
-            <StyledMenuItem value="Travel Cameras">Travel Cameras</StyledMenuItem>
-          </StyledSelect>
-        </StyledFormControl>
-
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          {handleDelete && (
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleDelete}
-              sx={{
-                bgcolor: '#ef4444',
-                '&:hover': {
-                  bgcolor: '#dc2626',
-                },
-              }}
-            >
-              Delete
-            </Button>
-          )}
+        >
+          {buttonText}
+        </Button>
+        {handleDelete && (
           <Button
-            type="submit"
+            onClick={handleDelete}
             variant="contained"
-            sx={{
-              bgcolor: '#ec4899',
-              '&:hover': {
-                bgcolor: '#db2777',
-              },
-            }}
+            color="error"
+            sx={{ width: '30%' }}
           >
-            {buttonText}
+            Delete
           </Button>
-        </Box>
+        )}
       </Box>
     </Box>
   );

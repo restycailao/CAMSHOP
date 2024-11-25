@@ -108,26 +108,15 @@ const AdminProductUpdate = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: "#121212", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: "#121212", minHeight: "100vh", color: "white" }}>
       <Grid container>
         <Grid item xs={12} md={2}>
           <AdminMenu />
         </Grid>
 
         <Grid item xs={12} md={10}>
-          <Box
-            sx={{
-              p: 4,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              maxWidth: "1200px",
-              margin: "0 auto",
-              minHeight: "100vh",
-            }}
-          >
-            <Typography variant="h4" sx={{ color: "white", mb: 4, textAlign: "center" }}>
+          <Box sx={{ p: 4 }}>
+            <Typography variant="h4" gutterBottom sx={{ color: "white" }}>
               Update Product
             </Typography>
 
@@ -250,48 +239,85 @@ const AdminProductUpdate = () => {
                       <Grid container spacing={3}>
                         <Grid item xs={12}>
                           <Field
-                            name="name"
                             component={TextField}
-                            fullWidth
+                            name="name"
                             label="Name"
+                            fullWidth
                             variant="outlined"
-                            value={values.name}
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12}>
                           <Field
-                            name="description"
                             component={TextField}
-                            fullWidth
+                            name="description"
                             label="Description"
+                            fullWidth
                             variant="outlined"
                             multiline
                             rows={4}
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                           <Field
-                            name="price"
                             component={TextField}
-                            fullWidth
+                            name="price"
                             label="Price"
                             type="number"
+                            fullWidth
                             variant="outlined"
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                           <Field
-                            name="category"
                             component={TextField}
-                            fullWidth
-                            select
+                            name="category"
                             label="Category"
+                            select
+                            fullWidth
+                            variant="outlined"
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                              "& .MuiSelect-icon": { color: "white" },
+                            }}
                           >
                             {categories?.map((cat) => (
-                              <MenuItem key={cat._id} value={cat._id}>
+                              <MenuItem key={cat._id} value={cat._id} sx={{ color: "black" }}>
                                 {cat.name}
                               </MenuItem>
                             ))}
@@ -300,33 +326,60 @@ const AdminProductUpdate = () => {
 
                         <Grid item xs={12} sm={6}>
                           <Field
-                            name="quantity"
                             component={TextField}
-                            fullWidth
+                            name="quantity"
                             label="Quantity"
                             type="number"
+                            fullWidth
                             variant="outlined"
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                           <Field
+                            component={TextField}
                             name="brand"
-                            component={TextField}
-                            fullWidth
                             label="Brand"
+                            fullWidth
                             variant="outlined"
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
                           <Field
-                            name="stock"
                             component={TextField}
-                            fullWidth
+                            name="stock"
                             label="Stock"
                             type="number"
+                            fullWidth
                             variant="outlined"
+                            sx={{
+                              "& .MuiInputBase-input": { color: "white" },
+                              "& .MuiInputLabel-root": { color: "white" },
+                              "& .MuiOutlinedInput-root": {
+                                "& fieldset": { borderColor: "white" },
+                                "&:hover fieldset": { borderColor: "white" },
+                                "&.Mui-focused fieldset": { borderColor: "white" },
+                              },
+                            }}
                           />
                         </Grid>
                       </Grid>

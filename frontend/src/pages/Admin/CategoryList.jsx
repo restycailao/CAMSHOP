@@ -111,11 +111,11 @@ const CategoryList = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0E0E0E]">
+    <div className="flex min-h-screen bg-[#0E0E0E]" style={{ color: "white" }}>
       <AdminMenu />
       <div className="flex-1 pt-[90px] px-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold mb-6 text-white text-center">Manage Categories</h2>
+          <h2 className="text-2xl font-semibold mb-6" style={{ color: "white" }}>Manage Categories</h2>
           <CategoryForm
             value={name}
             setValue={setName}
@@ -126,6 +126,14 @@ const CategoryList = () => {
             primaryUseCase={primaryUseCase}
             setPrimaryUseCase={setPrimaryUseCase}
             handleSubmit={handleCreateCategory}
+            inputStyle={{
+              backgroundColor: "#1e1e1e",
+              color: "white",
+              borderColor: "#333",
+            }}
+            labelStyle={{
+              color: "white",
+            }}
           />
           <div className="my-8 border-t border-gray-700"></div>
 
@@ -162,6 +170,14 @@ const CategoryList = () => {
               handleSubmit={handleUpdateCategory}
               buttonText="Update"
               handleDelete={handleDeleteCategory}
+              inputStyle={{
+                backgroundColor: "#1e1e1e",
+                color: "white",
+                borderColor: "#333",
+              }}
+              labelStyle={{
+                color: "white",
+              }}
             />
           </Modal>
         </div>

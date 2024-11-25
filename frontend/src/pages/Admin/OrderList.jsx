@@ -55,102 +55,71 @@ const OrderList = () => {
   const { data: orders, isLoading, error } = useGetOrdersQuery();
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#0E0E0E' }}>
+    <Box className="flex min-h-screen bg-[#0E0E0E]">
       <AdminMenu />
-      <Box sx={{ flexGrow: 1, pt: 11, px: 3 }}>
+      <Container maxWidth="xl" sx={{ pt: 12, pb: 4 }}>
+        <Typography variant="h4" sx={{ mb: 4, color: 'white' }}>
+          Orders ({orders?.length})
+        </Typography>
+
         {isLoading ? (
           <Loader />
         ) : error ? (
-          <Message variant="danger">
-            {error?.data?.message || error.error}
-          </Message>
+          <Message variant="error">{error?.data?.message || error.error}</Message>
         ) : (
-          <Paper 
-            elevation={0}
-            sx={{ 
-              bgcolor: '#151515',
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>ITEMS</StyledTableCell>
-                    <StyledTableCell>ID</StyledTableCell>
-                    <StyledTableCell>USER</StyledTableCell>
-                    <StyledTableCell>DATE</StyledTableCell>
-                    <StyledTableCell>TOTAL</StyledTableCell>
-                    <StyledTableCell>PAID</StyledTableCell>
-                    <StyledTableCell>DELIVERED</StyledTableCell>
-                    <StyledTableCell>ACTIONS</StyledTableCell>
-                  </TableRow>
-                </TableHead>
+          <TableContainer component={Paper} sx={{ backgroundColor: '#1a1a1a', borderRadius: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <StyledTableCell>ORDER ID</StyledTableCell>
+                  <StyledTableCell>USER</StyledTableCell>
+                  <StyledTableCell>DATE</StyledTableCell>
+                  <StyledTableCell>TOTAL</StyledTableCell>
+                  <StyledTableCell>PAID</StyledTableCell>
+                  <StyledTableCell>DELIVERED</StyledTableCell>
+                  <StyledTableCell></StyledTableCell>
+                </TableRow>
+              </TableHead>
 
-                <TableBody>
-                  {orders.map((order) => (
-                    <StyledTableRow key={order._id}>
-                      <StyledTableCell>
-                        <Box
-                          component="img"
-                          src={order.orderItems[0]?.image}
-                          alt={order._id}
-                          sx={{
-                            width: '80px',
-                            height: '80px',
-                            objectFit: 'cover',
-                            borderRadius: 1,
-                          }}
-                        />
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                          {order._id}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Typography>
-                          {order.user ? order.user.username : "N/A"}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          {order.createdAt ? order.createdAt.substring(0, 10) : "N/A"}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Typography sx={{ fontWeight: 600 }}>
-                          $ {order.totalPrice}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <StatusChip 
-                          label={order.isPaid ? "Completed" : "Pending"}
-                          status={order.isPaid}
-                        />
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <StatusChip 
-                          label={order.isDelivered ? "Completed" : "Pending"}
-                          status={order.isDelivered}
-                        />
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Link to={`/order/${order._id}`} style={{ textDecoration: 'none' }}>
-                          <ViewButton variant="contained" size="small">
-                            View Details
-                          </ViewButton>
-                        </Link>
-                      </StyledTableCell>
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+              <TableBody>
+                {orders?.map((order) => (
+                  <StyledTableRow key={order._id}>
+                    <StyledTableCell>{order._id}</StyledTableCell>
+                    <StyledTableCell>
+                      {order.user ? order.user.name : "N/A"}
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      {order.createdAt.substring(0, 10)}
+                    </StyledTableCell>
+                    <StyledTableCell>${order.totalPrice}</StyledTableCell>
+                    <StyledTableCell>
+                      <StatusChip
+                        status={order.isPaid}
+                        label={order.isPaid ? "Paid" : "Not Paid"}
+                      />
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      <StatusChip
+                        status={order.isDelivered}
+                        label={order.isDelivered ? "Delivered" : "Not Delivered"}
+                      />
+                    </StyledTableCell>
+                    <StyledTableCell>
+                      <ViewButton
+                        component={Link}
+                        to={`/order/${order._id}`}
+                        variant="contained"
+                      >
+                        View Details
+                      </ViewButton>
+                    </StyledTableCell>
+                  </StyledTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-      </Box>
+      </Container>
     </Box>
   );
 };
