@@ -18,10 +18,11 @@ export const uploadImageToCloudinary = async (file) => {
     }
 
     const data = await response.json();
-    if (!data.image) {
+    // Backend returns an array of images, we take the first one
+    if (!data.images || !data.images.length) {
       throw new Error('No image URL received from server');
     }
-    return data.image;
+    return data.images[0]; // Return the first image URL
   } catch (error) {
     console.error('Error uploading to Cloudinary:', error);
     throw error;

@@ -2,6 +2,7 @@ import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 import sendEmail from "../utils/sendEmail.js";
 import { generateOrderDeliveredEmail } from "../utils/emailTemplates.js";
+import { sendOrderDeliveredNotification } from "../utils/sendNotification.js";
 
 // Utility Function
 function calcPrices(orderItems) {
@@ -26,7 +27,7 @@ function calcPrices(orderItems) {
     taxPrice,
     totalPrice,
   };
-}
+} 
 
 const createOrder = async (req, res) => {
   try {
@@ -201,8 +202,11 @@ const markOrderAsDelivered = async (req, res) => {
           subject: "Order Delivered - CAMSHOP",
           html: generateOrderDeliveredEmail(order),
         });
-      } catch (emailError) {
-        console.error("Failed to send delivery email:", emailError);
+
+        // Send push notification
+        await sendOrderDeliveredNotification(order.user, order._id);
+      } catch (error) {
+        console.error("Failed to send delivery notifications:", error);
         // Don't throw the error as the order is already marked as delivered
       }
 

@@ -9,6 +9,7 @@ import {
   deleteUserById,
   getUserById,
   updateUserById,
+  updateFcmToken,
 } from "../controllers/userController.js";
 
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
@@ -27,6 +28,9 @@ router
   .route("/profile")
   .get(authenticate, getCurrentUserProfile)
   .put(authenticate, updateCurrentUserProfile);
+
+// FCM Token update route
+router.post("/fcm-token", authenticate, updateFcmToken);
 
 // ADMIN ROUTES 👇
 router
