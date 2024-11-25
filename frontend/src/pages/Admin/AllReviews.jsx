@@ -56,79 +56,41 @@ const AllReviews = () => {
   const { data: reviews, isLoading, error, refetch } = useGetAllReviewsQuery();
   const [deleteReview] = useDeleteReviewMutation();
 
-  const handleDeleteReview = (productId, reviewId) => {
-    toast.info(
-      <Box>
-        <DialogContent>
-          <DialogContentText sx={{ color: 'text.primary' }}>
-            Are you sure you want to delete this review?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'flex-end', gap: 1 }}>
-          <Button
-            onClick={() => {
-              deleteReview({ productId, reviewId })
-                .unwrap()
-                .then(() => {
-                  toast.success("Review deleted successfully");
-                  refetch();
-                })
-                .catch((err) => {
-                  toast.error(err?.data?.message || err.error || "Error deleting review");
-                });
-              toast.dismiss();
-            }}
-            variant="contained"
-            color="error"
-            size="small"
-          >
-            Delete
-          </Button>
-          <Button
-            onClick={() => toast.dismiss()}
-            variant="contained"
-            color="inherit"
-            size="small"
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Box>,
-      {
-        autoClose: false,
-        closeButton: false,
-        closeOnClick: false,
-        draggable: false,
-      }
-    );
+  const handleDeleteReview = async (productId, reviewId) => {
+    try {
+      await deleteReview({ productId, reviewId }).unwrap();
+      toast.success("Review deleted successfully");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || err.error || "Error deleting review");
+    }
   };
 
-  if (isLoading) return <Loader />;
-  if (error) return <Message variant="error">{error?.data?.message || error.error}</Message>;
-
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#0E0E0E' }}>
+    <>
       <AdminMenu />
-      <Box sx={{ flexGrow: 1, pt: 11, px: 3 }}>
-        <Paper 
-          elevation={0}
-          sx={{ 
-            bgcolor: '#151515',
-            borderRadius: 2,
-            p: 3,
-            mb: 3,
-          }}
-        >
-          <Typography variant="h5" component="h1" sx={{ color: '#fff', mb: 3, fontWeight: 600 }}>
-            Product Reviews
+      <Box sx={{ 
+        flexGrow: 1, 
+        p: 3,
+        mt: 8,
+        backgroundColor: '#0a0a0a',
+        minHeight: '100vh'
+      }}>
+        <Container maxWidth="xl">
+          <Typography variant="h4" sx={{ mb: 4, color: '#fff' }}>
+            All Reviews
           </Typography>
 
-          {reviews?.length === 0 ? (
-            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', textAlign: 'center', py: 2 }}>
-              No reviews found
-            </Typography>
+          {isLoading ? (
+            <Loader />
+          ) : error ? (
+            <Message variant="error">
+              {error?.data?.message || error.error || "Error loading reviews"}
+            </Message>
+          ) : reviews?.length === 0 ? (
+            <Message>No reviews found.</Message>
           ) : (
-            <TableContainer>
+            <TableContainer component={Paper} sx={{ backgroundColor: '#1a1a1a' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -141,7 +103,7 @@ const AllReviews = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reviews?.map((review) => (
+                  {reviews.map((review) => (
                     <StyledTableRow key={review._id}>
                       <StyledTableCell>
                         <ProductLink to={`/product/${review.productId}`}>
@@ -150,46 +112,43 @@ const AllReviews = () => {
                             src={review.productImage}
                             alt={review.productName}
                             sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 1,
-                              objectFit: 'cover'
+                              width: 50,
+                              height: 50,
+                              objectFit: 'cover',
+                              borderRadius: 1
                             }}
                           />
-                          <Typography>{review.productName}</Typography>
+                          {review.productName}
                         </ProductLink>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <Typography sx={{ color: '#fff' }}>{review.user.name}</Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          {review.user.email}
-                        </Typography>
-                      </StyledTableCell>
-                      <StyledTableCell>
-                        <Box sx={{ display: 'flex', color: '#faaf00' }}>
-                          {[...Array(review.rating)].map((_, index) => (
-                            <FaStar key={index} style={{ marginRight: 4 }} />
-                          ))}
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography sx={{ color: '#fff', fontWeight: 500 }}>
+                            {review.user?.name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                            {review.user?.email}
+                          </Typography>
                         </Box>
                       </StyledTableCell>
                       <StyledTableCell>
-                        <Typography sx={{ color: '#fff' }}>{review.comment}</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {review.rating}
+                          <FaStar style={{ color: '#f59e0b' }} />
+                        </Box>
                       </StyledTableCell>
+                      <StyledTableCell>{review.comment}</StyledTableCell>
                       <StyledTableCell>
-                        <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          {moment(review.createdAt).format('MMMM Do YYYY')}
-                        </Typography>
+                        {moment(review.createdAt).format('MMMM DD, YYYY')}
                       </StyledTableCell>
                       <StyledTableCell>
                         <IconButton
-                          onClick={() => handleDeleteReview(review.productId, review._id)}
-                          size="small"
-                          sx={{ 
-                            color: '#ef4444',
-                            '&:hover': {
-                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this review?')) {
+                              handleDeleteReview(review.productId, review._id);
                             }
                           }}
+                          sx={{ color: '#ef4444' }}
                         >
                           <FaTrash />
                         </IconButton>
@@ -200,9 +159,9 @@ const AllReviews = () => {
               </Table>
             </TableContainer>
           )}
-        </Paper>
+        </Container>
       </Box>
-    </Box>
+    </>
   );
 };
 

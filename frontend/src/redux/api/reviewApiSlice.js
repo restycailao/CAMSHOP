@@ -5,10 +5,13 @@ export const reviewApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllReviews: builder.query({
       query: () => ({
-        url: `${PRODUCT_URL}/reviews`,
+        url: `${PRODUCT_URL}/all-reviews`,
         method: "GET",
       }),
       providesTags: ["Reviews"],
+      transformResponse: (response) => {
+        return Array.isArray(response) ? response : [];
+      },
     }),
     deleteReview: builder.mutation({
       query: ({ productId, reviewId }) => ({

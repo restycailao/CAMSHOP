@@ -273,34 +273,45 @@ const filterProducts = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get all reviews (admin)
-// @route   GET /api/products/reviews
+// @route   GET /api/products/all-reviews
 // @access  Private/Admin
 const getAllReviews = asyncHandler(async (req, res) => {
   try {
-    const products = await Product.find({})
+    const products = await Product.find()
       .select('name image reviews')
       .populate({
-        path: 'reviews.user',
-        select: 'name email'
-      });
+        path: 'reviews',
+        populate: {
+          path: 'user',
+          model: 'User',
+          select: 'name email'
+        }
+      })
+      .lean();
 
-    let allReviews = [];
-    products.forEach(product => {
+    const allReviews = products.reduce((acc, product) => {
       if (product.reviews && product.reviews.length > 0) {
-        product.reviews.forEach(review => {
-          allReviews.push({
-            _id: review._id,
-            rating: review.rating,
-            comment: review.comment,
-            user: review.user,
-            productId: product._id,
-            productName: product.name,
-            productImage: product.image,
-            createdAt: review.createdAt
-          });
-        });
+        const productReviews = product.reviews.map(review => ({
+          _id: review._id,
+          rating: review.rating,
+          comment: review.comment,
+          user: {
+            _id: review.user?._id,
+            name: review.user?.name || 'Unknown User',
+            email: review.user?.email || 'No Email'
+          },
+          productId: product._id,
+          productName: product.name,
+          productImage: product.image,
+          createdAt: review.createdAt
+        }));
+        return [...acc, ...productReviews];
       }
-    });
+      return acc;
+    }, []);
+
+    // Sort reviews by date (most recent first)
+    allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.json(allReviews);
   } catch (error) {

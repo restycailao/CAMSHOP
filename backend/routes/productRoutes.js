@@ -1,7 +1,5 @@
 import express from "express";
-import formidable from "express-formidable";
 const router = express.Router();
-
 import {
   addProduct,
   updateProductDetails,
@@ -9,20 +7,21 @@ import {
   getProducts,
   fetchProductById,
   fetchAllProducts,
+  addProductReview,
   fetchTopProducts,
   fetchNewProducts,
   filterProducts,
   getAllReviews,
   deleteReview,
   deleteProductImage,
-  addProductReview,
-  updateProductReview,
 } from "../controllers/productController.js";
-
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
 import checkId from "../middlewares/checkId.js";
 import verifyPurchase from "../middlewares/verifyPurchase.js";
 import filterBadWords from "../middlewares/filterBadWords.js";
+
+// Reviews route (must be before /:id routes to avoid conflict)
+router.get("/all-reviews", authenticate, authorizeAdmin, getAllReviews);
 
 // Public routes
 router.route("/").get(getProducts);
@@ -31,14 +30,14 @@ router.route("/filtered-products").post(filterProducts);
 router.route("/top").get(fetchTopProducts);
 router.route("/new").get(fetchNewProducts);
 
-// Protected routes
+// Admin routes
 router
   .route("/")
   .post(authenticate, authorizeAdmin, addProduct);
 
 router
   .route("/:id")
-  .get(checkId, fetchProductById)
+  .get(fetchProductById)
   .put(authenticate, authorizeAdmin, checkId, updateProductDetails)
   .delete(authenticate, authorizeAdmin, checkId, removeProduct);
 
@@ -47,15 +46,13 @@ router
   .route("/:id/image")
   .delete(authenticate, authorizeAdmin, checkId, deleteProductImage);
 
-// Reviews
+// Product reviews
 router
   .route("/:id/reviews")
-  .get(getAllReviews)
-  .post(authenticate, checkId, verifyPurchase, filterBadWords, addProductReview)
-  .delete(authenticate, authorizeAdmin, deleteReview);
+  .post(authenticate, checkId, verifyPurchase, filterBadWords, addProductReview);
 
 router
-  .route("/:id/reviews/update")
-  .put(authenticate, checkId, filterBadWords, updateProductReview);
+  .route("/:id/reviews/:reviewId")
+  .delete(authenticate, authorizeAdmin, checkId, deleteReview);
 
 export default router;

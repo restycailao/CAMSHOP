@@ -2,24 +2,30 @@ import Category from "../models/categoryModel.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 
 const createCategory = asyncHandler(async (req, res) => {
+  const { name, cameraType, sensorSize, primaryUseCase } = req.body;
+
+  if (!name || !cameraType || !sensorSize || !primaryUseCase) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const existingCategory = await Category.findOne({ name });
+
+  if (existingCategory) {
+    return res.status(400).json({ message: "Category already exists" });
+  }
+
   try {
-    const { name, cameraType, sensorSize, primaryUseCase } = req.body;
-
-    if (!name || !cameraType || !sensorSize || !primaryUseCase) {
-      return res.json({ error: "All fields are required" });
-    }
-
-    const existingCategory = await Category.findOne({ name });
-
-    if (existingCategory) {
-      return res.json({ error: "Already exists" });
-    }
-
-    const category = await new Category({ name, cameraType, sensorSize, primaryUseCase }).save();
-    res.json(category);
+    const category = await new Category({ 
+      name, 
+      cameraType, 
+      sensorSize, 
+      primaryUseCase 
+    }).save();
+    
+    res.status(201).json(category);
   } catch (error) {
-    console.log(error);
-    return res.status(400).json(error);
+    console.error("Category creation error:", error);
+    res.status(400).json({ message: error.message || "Error creating category" });
   }
 });
 
