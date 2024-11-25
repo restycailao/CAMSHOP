@@ -6,7 +6,7 @@ import {
   addProduct,
   updateProductDetails,
   removeProduct,
-  fetchProducts,
+  getProducts,
   fetchProductById,
   fetchAllProducts,
   fetchTopProducts,
@@ -25,7 +25,7 @@ import verifyPurchase from "../middlewares/verifyPurchase.js";
 import filterBadWords from "../middlewares/filterBadWords.js";
 
 // Public routes
-router.route("/").get(fetchProducts);
+router.route("/").get(getProducts);
 router.route("/allProducts").get(fetchAllProducts);
 router.route("/filtered-products").post(filterProducts);
 router.route("/top").get(fetchTopProducts);

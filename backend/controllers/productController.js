@@ -104,37 +104,39 @@ const removeProduct = asyncHandler(async (req, res) => {
   }
 });
 
-const fetchProducts = asyncHandler(async (req, res) => {
-  try {
-    const pageSize = 6;
-    const page = Number(req.query.page) || 1;
+const getProducts = asyncHandler(async (req, res) => {
+  const pageSize = 5;
+  const page = Number(req.query.page) || 1;
 
-    const keyword = req.query.keyword
-      ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i",
-          },
-        }
-      : {};
+  const keyword = req.query.keyword
+    ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: "i",
+        },
+      }
+    : {};
 
-    const count = await Product.countDocuments({ ...keyword });
-    const products = await Product.find({ ...keyword })
-      .populate('category')
-      .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
+  // Add artificial delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-    res.json({
-      products,
-      page,
-      pages: Math.ceil(count / pageSize),
-      hasMore: page * pageSize < count,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server Error" });
-  }
+  const count = await Product.countDocuments({ ...keyword });
+  
+  const products = await Product.find({ ...keyword })
+    .populate('category')
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+
+  const totalPages = Math.ceil(count / pageSize);
+  
+  res.json({
+    products,
+    page,
+    totalPages,
+    hasMore: page < totalPages,
+    totalProducts: count
+  });
 });
 
 const fetchProductById = asyncHandler(async (req, res) => {
@@ -380,7 +382,7 @@ export {
   addProduct,
   updateProductDetails,
   removeProduct,
-  fetchProducts,
+  getProducts,
   fetchProductById,
   fetchAllProducts,
   addProductReview,
