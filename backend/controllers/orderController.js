@@ -1,6 +1,6 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
-import sendEmail from "../utils/sendEmail.js";
+import { sendEmail, sendOrderConfirmationEmail } from "../utils/sendEmail.js";
 import { generateOrderDeliveredEmail } from "../utils/emailTemplates.js";
 import { sendOrderDeliveredNotification } from "../utils/sendNotification.js";
 
@@ -162,25 +162,42 @@ const findOrderById = async (req, res) => {
 
 const markOrderAsPaid = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'email name');
 
-    if (order) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: req.body.id,
-        status: req.body.status,
-        update_time: req.body.update_time,
-        email_address: req.body.payer.email_address,
-      };
-
-      const updateOrder = await order.save();
-      res.status(200).json(updateOrder);
-    } else {
+    if (!order) {
       res.status(404);
       throw new Error("Order not found");
     }
+
+    console.log('Processing payment for order:', {
+      orderId: order._id,
+      userEmail: order.user?.email,
+      userName: order.user?.name
+    });
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.payer.email_address,
+    };
+
+    const updatedOrder = await order.save();
+
+    // Send order confirmation email
+    try {
+      const emailSent = await sendOrderConfirmationEmail(updatedOrder);
+      console.log('Order confirmation email status:', emailSent ? 'sent' : 'failed');
+    } catch (error) {
+      console.error('Failed to send order confirmation email:', error);
+      // Don't throw error here, as the payment was still successful
+    }
+
+    res.status(200).json(updatedOrder);
   } catch (error) {
+    console.error('Error in markOrderAsPaid:', error);
     res.status(500).json({ error: error.message });
   }
 };
