@@ -202,6 +202,38 @@ const addProductReview = asyncHandler(async (req, res) => {
   res.status(201).json({ message: "Review added" });
 });
 
+const updateProductReview = asyncHandler(async (req, res) => {
+  const { rating, comment } = req.body;
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  // Find the review
+  const reviewToUpdate = product.reviews.find(
+    (r) => r.user.toString() === req.user._id.toString()
+  );
+
+  if (!reviewToUpdate) {
+    res.status(404);
+    throw new Error("Review not found");
+  }
+
+  // Update the review
+  reviewToUpdate.rating = Number(rating);
+  reviewToUpdate.comment = comment;
+
+  // Recalculate average rating
+  product.rating =
+    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+    product.reviews.length;
+
+  await product.save();
+  res.status(200).json({ message: "Review updated" });
+});
+
 const fetchTopProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({}).sort({ rating: -1 }).limit(4);
@@ -352,6 +384,7 @@ export {
   fetchProductById,
   fetchAllProducts,
   addProductReview,
+  updateProductReview,
   fetchTopProducts,
   fetchNewProducts,
   filterProducts,

@@ -16,6 +16,7 @@ import {
   deleteReview,
   deleteProductImage,
   addProductReview,
+  updateProductReview,
 } from "../controllers/productController.js";
 
 import { authenticate, authorizeAdmin } from "../middlewares/authMiddleware.js";
@@ -52,5 +53,9 @@ router
   .get(getAllReviews)
   .post(authenticate, checkId, verifyPurchase, filterBadWords, addProductReview)
   .delete(authenticate, authorizeAdmin, deleteReview);
+
+router
+  .route("/:id/reviews/update")
+  .put(authenticate, checkId, filterBadWords, updateProductReview);
 
 export default router;

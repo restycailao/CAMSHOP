@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import {
   useGetProductDetailsQuery,
   useCreateReviewMutation,
+  useUpdateReviewMutation,
 } from "../../redux/api/productApiSlice";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
@@ -146,6 +147,7 @@ const ProductDetails = () => {
   const [comment, setComment] = useState("");
   const [activeTab, setActiveTab] = useState("description");
   const [activeStep, setActiveStep] = useState(0);
+  const [editingReview, setEditingReview] = useState(null);
 
   const {
     data: product,
@@ -184,13 +186,23 @@ const ProductDetails = () => {
     }
 
     try {
-      const result = await createReview({
-        productId,
-        rating,
-        comment,
-      }).unwrap();
+      if (editingReview) {
+        await updateReview({
+          productId,
+          rating,
+          comment,
+        }).unwrap();
+        toast.success("Review updated successfully");
+        setEditingReview(null);
+      } else {
+        await createReview({
+          productId,
+          rating,
+          comment,
+        }).unwrap();
+        toast.success("Review added successfully");
+      }
       
-      toast.success("Review added successfully");
       setRating(0);
       setComment("");
       refetch();
@@ -211,8 +223,8 @@ const ProductDetails = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  const [createReview, { isLoading: loadingProductReview }] =
-    useCreateReviewMutation();
+  const [createReview, { isLoading: loadingProductReview }] = useCreateReviewMutation();
+  const [updateReview, { isLoading: loadingReviewUpdate }] = useUpdateReviewMutation();
 
   const tabs = [
     { id: "description", label: "Description" },
@@ -626,11 +638,11 @@ const ProductDetails = () => {
                         <Grid item xs={12}>
                           <StyledButton
                             type="submit"
-                            disabled={loadingProductReview}
+                            disabled={loadingProductReview || loadingReviewUpdate}
                             fullWidth
                             size="large"
                           >
-                            {loadingProductReview ? "Submitting..." : "Submit Review"}
+                            {loadingProductReview || loadingReviewUpdate ? "Submitting..." : editingReview ? "Update Review" : "Submit Review"}
                           </StyledButton>
                         </Grid>
                       </Grid>
@@ -655,9 +667,27 @@ const ProductDetails = () => {
                                 <Typography variant="subtitle1" color="white">
                                   {review.name}
                                 </Typography>
-                                <Typography variant="caption" color="white" sx={{ opacity: 0.7 }}>
-                                  {moment(review.createdAt).fromNow()}
-                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="caption" color="white" sx={{ opacity: 0.7 }}>
+                                    {moment(review.createdAt).fromNow()}
+                                  </Typography>
+                                  {userInfo && userInfo._id === review.user && (
+                                    <StyledButton
+                                      size="small"
+                                      onClick={() => {
+                                        setEditingReview(review);
+                                        setRating(review.rating);
+                                        setComment(review.comment);
+                                        window.scrollTo({
+                                          top: document.querySelector('form').offsetTop - 100,
+                                          behavior: 'smooth'
+                                        });
+                                      }}
+                                    >
+                                      Edit
+                                    </StyledButton>
+                                  )}
+                                </Box>
                               </Box>
                               <Rating 
                                 value={review.rating} 

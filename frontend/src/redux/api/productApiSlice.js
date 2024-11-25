@@ -83,6 +83,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    updateReview: builder.mutation({
+      query: (data) => ({
+        url: `${PRODUCT_URL}/${data.productId}/reviews/update`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
     getTopProducts: builder.query({
       query: () => `${PRODUCT_URL}/top`,
       keepUnusedDataFor: 5,
@@ -111,10 +119,11 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
-  useUploadProductImageMutation,
   useCreateReviewMutation,
+  useUpdateReviewMutation,
+  useUploadProductImageMutation,
+  useDeleteProductImageMutation,
   useGetTopProductsQuery,
   useGetNewProductsQuery,
   useGetFilteredProductsQuery,
-  useDeleteProductImageMutation,
 } = productApiSlice;

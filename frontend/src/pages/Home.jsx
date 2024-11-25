@@ -109,7 +109,7 @@ const Home = () => {
             color={colorPalette.text.primary}
             sx={{ mb: 3, fontWeight: 'bold' }}
           >
-            Lens Collection - 2019
+            ClickIT Shop 2024
           </Typography>
           
           <Typography
