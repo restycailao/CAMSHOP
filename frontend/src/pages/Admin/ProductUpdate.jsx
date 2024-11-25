@@ -37,11 +37,12 @@ const AdminProductUpdate = () => {
       const formData = new FormData();
       formData.append("image", file);
       try {
-        const res = await uploadProductImage(formData).unwrap();
-        if (res.error) {
-          throw new Error(res.error.message || "Upload failed");
+        const result = await uploadProductImage(formData).unwrap();
+        if (result.error) {
+          throw new Error(result.error);
         }
-        return res.image;
+        // Return the first image URL from the response
+        return result.images[0];
       } catch (err) {
         console.error("Upload error:", err);
         toast.error(err?.data?.message || err.message || "Failed to upload image");
@@ -89,21 +90,26 @@ const AdminProductUpdate = () => {
 
   const handleSubmit = async (values) => {
     try {
-      const productData = { ...values, images };
-      const { data } = await updateProduct({
-        productId: params.id,
+      const productData = {
+        ...values,
+        images,
+        countInStock: values.stock
+      };
+
+      const result = await updateProduct({
+        productId: params._id,
         updatedProduct: productData,
       }).unwrap();
 
-      if (data.error) {
-        toast.error(data.error);
+      if (result.error) {
+        toast.error(result.error);
       } else {
-        toast.success("Product updated");
+        toast.success("Product updated successfully");
         navigate("/admin/allproductslist");
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Product update failed. Try again");
+      console.error("Update error:", err);
+      toast.error(err?.data?.message || err.message || "Product update failed. Try again");
     }
   };
 

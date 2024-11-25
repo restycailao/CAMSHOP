@@ -217,13 +217,21 @@ const Home = () => {
                   <Link to={`/product/${product._id}`}>
                     <Box
                       component="img"
-                      src={product.image}
+                      src={product.image || '/images/default-product.jpg'}
                       alt={product.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/images/default-product.jpg';
+                      }}
                       sx={{
                         width: '100%',
                         height: '300px',
                         objectFit: 'contain',
-                        backgroundColor: '#1e1e1e'
+                        backgroundColor: '#1e1e1e',
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': {
+                          transform: 'scale(1.05)'
+                        }
                       }}
                     />
                   </Link>

@@ -8,30 +8,39 @@ const addProduct = asyncHandler(async (req, res) => {
     // Validation
     switch (true) {
       case !name:
-        return res.json({ error: "Name is required" });
+        return res.status(400).json({ error: "Name is required" });
       case !brand:
-        return res.json({ error: "Brand is required" });
+        return res.status(400).json({ error: "Brand is required" });
       case !description:
-        return res.json({ error: "Description is required" });
+        return res.status(400).json({ error: "Description is required" });
       case !price:
-        return res.json({ error: "Price is required" });
+        return res.status(400).json({ error: "Price is required" });
       case !category:
-        return res.json({ error: "Category is required" });
+        return res.status(400).json({ error: "Category is required" });
       case !quantity:
-        return res.json({ error: "Quantity is required" });
+        return res.status(400).json({ error: "Quantity is required" });
     }
 
-    const product = new Product({ 
-      ...req.body,
-      image: images && images.length > 0 ? images[0] : undefined, // Set first image as main image
-      images: images || [] // Ensure images array exists
-    });
+    // Ensure images is an array and contains valid URLs
+    const imageArray = Array.isArray(images) ? images.filter(url => url && url.startsWith('http')) : [];
     
-    await product.save();
-    res.json(product);
+    const product = new Product({
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      brand,
+      image: imageArray.length > 0 ? imageArray[0] : "/images/default-product.jpg", // Set first image as main image
+      images: imageArray, // Store all images
+      countInStock: quantity
+    });
+
+    const createdProduct = await product.save();
+    res.status(201).json(createdProduct);
   } catch (error) {
-    console.error(error);
-    res.status(400).json(error.message);
+    console.error("Error creating product:", error);
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -39,42 +48,49 @@ const updateProductDetails = asyncHandler(async (req, res) => {
   try {
     const { name, description, price, category, quantity, brand, images } = req.body;
 
-    // Validation
-    switch (true) {
-      case !name:
-        return res.json({ error: "Name is required" });
-      case !brand:
-        return res.json({ error: "Brand is required" });
-      case !description:
-        return res.json({ error: "Description is required" });
-      case !price:
-        return res.json({ error: "Price is required" });
-      case !category:
-        return res.json({ error: "Category is required" });
-      case !quantity:
-        return res.json({ error: "Quantity is required" });
-    }
-
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    // Update the product
+    // Validation
+    switch (true) {
+      case !name:
+        return res.status(400).json({ error: "Name is required" });
+      case !brand:
+        return res.status(400).json({ error: "Brand is required" });
+      case !description:
+        return res.status(400).json({ error: "Description is required" });
+      case !price:
+        return res.status(400).json({ error: "Price is required" });
+      case !category:
+        return res.status(400).json({ error: "Category is required" });
+      case !quantity:
+        return res.status(400).json({ error: "Quantity is required" });
+    }
+
+    // Ensure images is an array and contains valid URLs
+    const imageArray = Array.isArray(images) ? images.filter(url => url && url.startsWith('http')) : [];
+
     product.name = name;
     product.description = description;
     product.price = price;
     product.category = category;
     product.quantity = quantity;
     product.brand = brand;
-    product.images = images || product.images;
-    product.image = images && images.length > 0 ? images[0] : product.image;
+    product.countInStock = quantity;
+    
+    // Only update images if new ones are provided
+    if (imageArray.length > 0) {
+      product.image = imageArray[0]; // Set first image as main image
+      product.images = imageArray; // Store all images
+    }
 
-    await product.save();
-    res.json(product);
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
   } catch (error) {
-    console.error(error);
-    res.status(400).json(error.message);
+    console.error("Error updating product:", error);
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -285,10 +301,9 @@ const deleteReview = asyncHandler(async (req, res) => {
 
     // Recalculate rating
     if (product.reviews.length > 0) {
-      product.rating = (
+      product.rating =
         product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        product.reviews.length
-      ).toFixed(1);
+        product.reviews.length;
     } else {
       product.rating = 0;
     }
