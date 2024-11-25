@@ -1,6 +1,6 @@
 import Order from "../models/orderModel.js";
 import Product from "../models/productModel.js";
-import { sendEmail, sendOrderConfirmationEmail } from "../utils/sendEmail.js";
+import { sendEmail, sendOrderConfirmationEmail, sendOrderCancellationEmail } from "../utils/sendEmail.js";
 import { generateOrderDeliveredEmail } from "../utils/emailTemplates.js";
 import { sendOrderDeliveredNotification } from "../utils/sendNotification.js";
 
@@ -237,6 +237,62 @@ const markOrderAsDelivered = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate("user", "email name");
+
+    if (!order) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+
+    // Check if user is authorized to cancel the order
+    if (
+      order.user._id.toString() !== req.user._id.toString() &&
+      !req.user.isAdmin
+    ) {
+      res.status(403);
+      throw new Error("Not authorized to cancel this order");
+    }
+
+    // Check if order can be cancelled
+    if (order.isDelivered) {
+      res.status(400);
+      throw new Error("Cannot cancel delivered orders");
+    }
+
+    if (order.status === "Cancelled") {
+      res.status(400);
+      throw new Error("Order is already cancelled");
+    }
+
+    // Update order status
+    order.status = "Cancelled";
+    order.cancelledAt = Date.now();
+
+    // If order was paid, mark for refund
+    if (order.isPaid) {
+      order.refundStatus = "Pending";
+    }
+
+    const updatedOrder = await order.save();
+
+    // Send cancellation email
+    try {
+      await sendOrderCancellationEmail(updatedOrder);
+      console.log("Order cancellation email sent successfully");
+    } catch (error) {
+      console.error("Error sending cancellation email:", error);
+      // Don't throw error here, as the order is already cancelled
+    }
+
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error('Error in cancelOrder:', error);
+    res.status(error.status || 500).json({ message: error.message });
+  }
+};
+
 export {
   createOrder,
   getAllOrders,
@@ -247,4 +303,5 @@ export {
   findOrderById,
   markOrderAsPaid,
   markOrderAsDelivered,
+  cancelOrder,
 };

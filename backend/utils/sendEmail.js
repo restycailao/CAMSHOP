@@ -116,4 +116,79 @@ const sendOrderConfirmationEmail = async (order) => {
   }
 };
 
-export { sendEmail, sendOrderConfirmationEmail };
+const sendOrderCancellationEmail = async (order) => {
+  try {
+    if (!order.user || !order.user.email) {
+      console.error('Order user or email missing:', order);
+      return false;
+    }
+
+    console.log('Preparing order cancellation email for:', order.user.email);
+
+    const emailContent = `
+      <div style="max-width: 700px; margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
+        <h2 style="text-align: center; text-transform: uppercase;color: #40513B;">Order Cancellation Confirmation</h2>
+        <p>Your order has been cancelled as requested. Here are the details of the cancelled order:</p>
+        <h3>Order Details:</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Product</th>
+              <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Quantity</th>
+              <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.orderItems
+              .map(
+                (item) => `
+              <tr>
+                <td style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">${
+                  item.name
+                }</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">${
+                  item.qty
+                }</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">$${
+                  item.price
+                }</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;"><strong>Total:</strong></td>
+              <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;"><strong>$${
+                order.totalPrice
+              }</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        ${
+          order.isPaid
+            ? `<div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h3 style="margin-top: 0;">Refund Information:</h3>
+                <p>Since your order was already paid, a refund will be processed according to our refund policy. 
+                The refund should be reflected in your account within 5-10 business days.</p>
+              </div>`
+            : ""
+        }
+        <hr style="border: none; border-bottom: 1px solid #ddd;">
+        <p>If you have any questions about your cancellation or refund, please don't hesitate to contact our customer service.</p>
+      </div>
+    `;
+
+    return await sendEmail({
+      email: order.user.email,
+      subject: `Order Cancelled - CAMSHOP #${order._id}`,
+      html: emailContent,
+    });
+  } catch (error) {
+    console.error('Error sending order cancellation email:', error);
+    return false;
+  }
+};
+
+export { sendEmail, sendOrderConfirmationEmail, sendOrderCancellationEmail };

@@ -1,19 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import Messsage from "../../components/Message";
+import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import {
   useDeliverOrderMutation,
   useGetOrderDetailsQuery,
   useGetPaypalClientIdQuery,
   usePayOrderMutation,
+  useCancelOrderMutation,
 } from "../../redux/api/orderApiSlice";
 
 const Order = () => {
   const { id: orderId } = useParams();
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const {
     data: order,
@@ -23,21 +25,21 @@ const Order = () => {
   } = useGetOrderDetailsQuery(orderId);
 
   const [payOrder, { isLoading: loadingPay }] = usePayOrderMutation();
-  const [deliverOrder, { isLoading: loadingDeliver }] =
-    useDeliverOrderMutation();
+  const [cancelOrder] = useCancelOrderMutation();
+  const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
   const { userInfo } = useSelector((state) => state.auth);
 
   const [{ isPending }, paypalDispatch] = usePayPalScriptReducer();
 
   const {
     data: paypal,
-    isLoading: loadingPaPal,
     error: errorPayPal,
+    isLoading: loadingPayPal,
   } = useGetPaypalClientIdQuery();
 
   useEffect(() => {
-    if (!errorPayPal && !loadingPaPal && paypal.clientId) {
-      const loadingPaPalScript = async () => {
+    if (!errorPayPal && !loadingPayPal && paypal.clientId) {
+      const loadPaypalScript = async () => {
         paypalDispatch({
           type: "resetOptions",
           value: {
@@ -47,14 +49,13 @@ const Order = () => {
         });
         paypalDispatch({ type: "setLoadingStatus", value: "pending" });
       };
-
       if (order && !order.isPaid) {
         if (!window.paypal) {
-          loadingPaPalScript();
+          loadPaypalScript();
         }
       }
     }
-  }, [errorPayPal, loadingPaPal, order, paypal, paypalDispatch]);
+  }, [errorPayPal, loadingPayPal, order, paypal, paypalDispatch]);
 
   function onApprove(data, actions) {
     return actions.order.capture().then(async function (details) {
@@ -62,8 +63,8 @@ const Order = () => {
         await payOrder({ orderId, details });
         refetch();
         toast.success("Order is paid");
-      } catch (error) {
-        toast.error(error?.data?.message || error.message);
+      } catch (err) {
+        toast.error(err?.data?.message || err.error);
       }
     });
   }
@@ -83,14 +84,40 @@ const Order = () => {
   }
 
   const deliverHandler = async () => {
-    await deliverOrder(orderId);
-    refetch();
+    try {
+      await deliverOrder(orderId);
+      refetch();
+      toast.success("Order delivered");
+    } catch (err) {
+      toast.error(err?.data?.message || err.message);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    try {
+      await cancelOrder(orderId).unwrap();
+      refetch();
+      toast.success("Order cancelled successfully");
+      setCancelDialogOpen(false);
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to cancel order");
+    }
+  };
+
+  const showCancelButton = () => {
+    return (
+      order &&
+      order.isPaid &&
+      !order.isDelivered &&
+      (userInfo._id === order.user._id || userInfo.isAdmin) &&
+      order.status !== "Cancelled"
+    );
   };
 
   return isLoading ? (
     <Loader />
   ) : error ? (
-    <Messsage variant="danger">{error.data.message}</Messsage>
+    <Message variant="danger">{error.data.message}</Message>
   ) : (
     <div className="container mx-auto pt-[90px] px-4 bg-[#0E0E0E] text-white">
       <div className="flex flex-col md:flex-row gap-8">
@@ -113,12 +140,16 @@ const Order = () => {
                   {order.shippingAddress.country}
                 </p>
                 <div className="mt-2">
-                  {order.isDelivered ? (
-                    <Messsage variant="success">
+                  {order.status === "Cancelled" ? (
+                    <Message variant="danger">
+                      Order Cancelled
+                    </Message>
+                  ) : order.isDelivered ? (
+                    <Message variant="success">
                       Delivered on {order.deliveredAt}
-                    </Messsage>
+                    </Message>
                   ) : (
-                    <Messsage variant="danger">Not Delivered</Messsage>
+                    <Message variant="danger">Not Delivered</Message>
                   )}
                 </div>
               </div>
@@ -133,11 +164,11 @@ const Order = () => {
                 </p>
                 <div className="mt-2">
                   {order.isPaid ? (
-                    <Messsage variant="success">
+                    <Message variant="success">
                       Paid on {order.paidAt}
-                    </Messsage>
+                    </Message>
                   ) : (
-                    <Messsage variant="danger">Not Paid</Messsage>
+                    <Message variant="danger">Not Paid</Message>
                   )}
                 </div>
               </div>
@@ -146,7 +177,7 @@ const Order = () => {
             <div>
               <h3 className="text-xl mb-2">Order Items</h3>
               {order.orderItems.length === 0 ? (
-                <Messsage>Order is empty</Messsage>
+                <Message>Order is empty</Message>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full">
@@ -231,7 +262,11 @@ const Order = () => {
             )}
 
             {loadingDeliver && <Loader />}
-            {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
+            {userInfo && 
+              userInfo.isAdmin && 
+              order.isPaid && 
+              !order.isDelivered && 
+              order.status !== "Cancelled" && (
               <div className="mt-4">
                 <button
                   className="bg-pink-500 text-white w-full py-2 hover:bg-pink-600"
@@ -241,6 +276,51 @@ const Order = () => {
                 </button>
               </div>
             )}
+
+            {showCancelButton() && (
+              <div className="mt-4">
+                <button
+                  className="bg-red-500 text-white w-full py-2 hover:bg-red-600"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
+                  Cancel Order
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Cancel Order Confirmation Dialog */}
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center ${
+          cancelDialogOpen ? "block" : "hidden"
+        }`}
+      >
+        <div className="bg-[#1A1A1A] p-6 rounded-lg w-1/2">
+          <h2 className="text-xl font-semibold mb-4">Cancel Order</h2>
+          <p>
+            Are you sure you want to cancel this order? This action cannot be undone.
+          </p>
+          {order?.isPaid && (
+            <p className="mt-2 text-red-500">
+              Note: Since this order has been paid, a refund will be initiated according
+              to our refund policy.
+            </p>
+          )}
+          <div className="flex justify-between mt-4">
+            <button
+              className="bg-gray-500 text-white w-full py-2 hover:bg-gray-600"
+              onClick={() => setCancelDialogOpen(false)}
+            >
+              No, Keep Order
+            </button>
+            <button
+              className="bg-red-500 text-white w-full py-2 hover:bg-red-600"
+              onClick={handleCancelOrder}
+            >
+              Yes, Cancel Order
+            </button>
           </div>
         </div>
       </div>

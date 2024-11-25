@@ -79,6 +79,20 @@ const orderSchema = mongoose.Schema(
     deliveredAt: {
       type: Date,
     },
+    status: {
+      type: String,
+      required: true,
+      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      default: 'Pending'
+    },
+    cancelledAt: {
+      type: Date
+    },
+    refundStatus: {
+      type: String,
+      enum: ['Not Applicable', 'Pending', 'Processed', 'Completed'],
+      default: 'Not Applicable'
+    }
   },
   {
     timestamps: true,
